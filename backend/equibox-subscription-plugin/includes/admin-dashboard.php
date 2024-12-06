@@ -20,42 +20,50 @@ function render_admin_dashboard() {
     $active_subscriptions = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}subscriptions WHERE status = 'active'");
     $canceled_subscriptions = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}subscriptions WHERE status = 'canceled'");
 
-    // Display analytics
-    echo "<h1>Admin Dashboard</h1>";
-    echo "<h2>Subscription Analytics</h2>";
-    echo "<p>Total Subscriptions: $total_subscriptions</p>";
-    echo "<p>Active Subscriptions: $active_subscriptions</p>";
-    echo "<p>Canceled Subscriptions: $canceled_subscriptions</p>";
+    echo '<div class="wrap">';
+    echo '<h1 class="wp-heading-inline">Admin Dashboard</h1>';
 
-    // Fetch subscription plans and products
-    $subscription_plans = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}subscription_plans");
-    $products = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}products");
+    // Subscription Analytics
+    echo '<h2>Subscription Analytics</h2>';
+    echo '<table class="widefat fixed striped">';
+    echo '<thead><tr><th>Total Subscriptions</th><th>Active Subscriptions</th><th>Canceled Subscriptions</th></tr></thead>';
+    echo '<tbody>';
+    echo "<tr><td>$total_subscriptions</td><td>$active_subscriptions</td><td>$canceled_subscriptions</td></tr>";
+    echo '</tbody>';
+    echo '</table>';
 
-    // Add product to box form
+    // Add Product Form
     echo '<h2>Add Product to Subscription Box</h2>';
-    echo '<form method="POST" action="">';
-
-    echo '<label for="plan_id">Subscription Plan:</label>';
-    echo '<select id="plan_id" name="plan_id" required>';
+    echo '<form method="POST" action="" class="form-wrap">';
+    echo '<table class="form-table">';
+    echo '<tr><th><label for="plan_id">Subscription Plan:</label></th>';
+    echo '<td><select id="plan_id" name="plan_id" required class="regular-text">';
     echo '<option value="">Select a subscription plan</option>';
-    foreach ($subscription_plans as $plan) {
+    $plans = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}subscription_plans");
+    foreach ($plans as $plan) {
         echo "<option value='{$plan->id}'>{$plan->name}</option>";
     }
-    echo '</select><br>';
+    echo '</select></td></tr>';
 
-    echo '<label for="product_id">Product:</label>';
-    echo '<select id="product_id" name="product_id" required>';
+    echo '<tr><th><label for="product_id">Product:</label></th>';
+    echo '<td><select id="product_id" name="product_id" required class="regular-text">';
     echo '<option value="">Select a product</option>';
+    $products = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}products");
     foreach ($products as $product) {
         echo "<option value='{$product->id}'>{$product->name}</option>";
     }
-    echo '</select><br>';
+    echo '</select></td></tr>';
 
-    echo '<label for="month_year">Month/Year:</label>';
-    echo '<input type="month" id="month_year" name="month_year" required><br>';
-    echo '<label for="quantity">Quantity:</label>';
-    echo '<input type="number" id="quantity" name="quantity" required><br>';
-    echo '<button type="submit" name="submit_add_product">Add Product</button>';
+    echo '<tr><th><label for="month_year">Month/Year:</label></th>';
+    echo '<td><input type="month" id="month_year" name="month_year" required class="regular-text"></td></tr>';
+
+    echo '<tr><th><label for="quantity">Quantity:</label></th>';
+    echo '<td><input type="number" id="quantity" name="quantity" required class="regular-text"></td></tr>';
+    echo '</table>';
+
+    echo '<p class="submit">';
+    echo '<button type="submit" name="submit_add_product" class="button button-primary">Add Product</button>';
+    echo '</p>';
     echo '</form>';
 
     // Handle form submission
@@ -79,10 +87,12 @@ function render_admin_dashboard() {
         );
 
         if ($result !== false) {
-            echo "<p>Product added to box successfully!</p>";
+            echo '<div class="notice notice-success is-dismissible"><p>Product added to box successfully!</p></div>';
         } else {
-            echo "<p>Error adding product to box.</p>";
+            echo '<div class="notice notice-error is-dismissible"><p>Error adding product to box.</p></div>';
         }
     }
+    echo '</div>';
 }
+
 
