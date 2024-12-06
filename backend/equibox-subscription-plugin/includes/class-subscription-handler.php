@@ -32,7 +32,7 @@ class Subscription_Handler {
         $user_id = wp_create_user($username, $password, $email);
 
         if (is_wp_error($user_id)) {
-            return $user_id; // Return the error object
+            return $user_id;
         }
 
         return rest_ensure_response([
@@ -60,13 +60,17 @@ class Subscription_Handler {
         $table_name = $wpdb->prefix . 'subscriptions';
 
         // Check if the plan exists
-        $plan_exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id));
+        $plan_exists = $wpdb->get_var(
+            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id)
+        );
         if (!$plan_exists) {
             return new WP_Error('invalid_plan', 'Subscription plan does not exist.', ['status' => 400]);
         }
 
         // Check if the user already has a subscription
-        $exists = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id));
+        $exists = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id)
+        );
         if ($exists) {
             return new WP_Error('already_subscribed', 'User already has a subscription.', ['status' => 400]);
         }
@@ -112,13 +116,17 @@ class Subscription_Handler {
         $table_name = $wpdb->prefix . 'subscriptions';
 
         // Check if subscription exists
-        $subscription = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id));
+        $subscription = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id)
+        );
         if (!$subscription) {
             return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
         }
 
         // Check if the plan exists
-        $plan_exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id));
+        $plan_exists = $wpdb->get_var(
+            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id)
+        );
         if (!$plan_exists) {
             return new WP_Error('invalid_plan', 'Subscription plan does not exist.', ['status' => 400]);
         }
@@ -155,7 +163,9 @@ class Subscription_Handler {
         $table_name = $wpdb->prefix . 'subscriptions';
 
         // Check if subscription exists
-        $subscription = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id));
+        $subscription = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id)
+        );
         if (!$subscription) {
             return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
         }
