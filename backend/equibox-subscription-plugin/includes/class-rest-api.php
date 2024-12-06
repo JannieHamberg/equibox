@@ -134,9 +134,12 @@ class REST_API {
     }
 
     public static function check_admin_permissions() {
-        return current_user_can('manage_options'); // Allow only admins
+        if (!is_user_logged_in() || !current_user_can('manage_options')) {
+            return new WP_Error('rest_forbidden', 'Access denied.', ['status' => 403]);
+        }
+        return true;
     }
-
+    
 
     
 
