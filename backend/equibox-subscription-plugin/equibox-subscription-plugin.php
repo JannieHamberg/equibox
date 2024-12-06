@@ -19,6 +19,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-box-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-product-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-rest-api.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-stripe-webhooks.php';
+require_once plugin_dir_path(__FILE__) . 'includes/admin-dashboard.php';
+
 
 
 // Initialize plugin
