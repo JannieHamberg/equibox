@@ -17,7 +17,7 @@ class REST_API {
             [
                 'methods' => 'POST',
                 'callback' => ['Subscription_Handler', 'register_user'],
-                'permission_callback' => '__return_true', // No login required
+                'permission_callback' => '__return_true', 
             ]
         );
 
@@ -124,13 +124,89 @@ class REST_API {
                 'permission_callback' => [__CLASS__, 'check_admin_permissions'], // Admin only
             ]
         );
-        
-        
+
+        register_rest_route(
+            'equibox/v1',
+            '/stripe-webhook',
+            [
+                'methods' => 'POST',
+                'callback' => ['Stripe_Webhook_Handler', 'handle_webhook'],
+                'permission_callback' => '__return_true',
+            ]
+        );
+
+        // Add a subscription plan
+        register_rest_route('equibox/v1', '/admin/subscription_plans/add', [
+            'methods' => 'POST',
+            'callback' => ['Subscription_Admin_Handler', 'add_subscription_plan'],
+            'permission_callback' => function () {
+                $user = wp_get_current_user();
+
+                // Log user details for debugging
+                error_log('User ID: ' . $user->ID);
+                error_log('User capabilities: ' . print_r($user->allcaps, true));
+
+                // Check if the user has the required capability
+                if (!current_user_can('manage_options')) {
+                    error_log('Permission denied for user ID: ' . $user->ID);
+                    return false;
+                }
+
+                error_log('Permission granted for user ID: ' . $user->ID);
+                return true;
+            },
+        ]);
+
+        // Edit subscription plan
+        register_rest_route('equibox/v1', '/admin/subscription_plans/edit', [
+            'methods' => 'PUT',
+            'callback' => ['Subscription_Admin_Handler', 'edit_subscription_plan'],
+            'permission_callback' => function () {
+                $user = wp_get_current_user();
+
+                // Log user details for debugging
+                error_log('User ID: ' . $user->ID);
+                error_log('User capabilities: ' . print_r($user->allcaps, true));
+
+                // Check if the user has the required capability
+                if (!current_user_can('manage_options')) {
+                    error_log('Permission denied for user ID: ' . $user->ID);
+                    return false;
+                }
+
+                error_log('Permission granted for user ID: ' . $user->ID);
+                return true;
+            },
+        ]);
+
+        // Delete a subscription plan
+        register_rest_route('equibox/v1', '/admin/subscription_plans/delete', [
+            'methods' => 'DELETE',
+            'callback' => ['Subscription_Admin_Handler', 'delete_subscription_plan'],
+            'permission_callback' => function () {
+                $user = wp_get_current_user();
+
+                // Log user details for debugging
+                error_log('User ID: ' . $user->ID);
+                error_log('User capabilities: ' . print_r($user->allcaps, true));
+
+                // Check if the user has the required capability
+                if (!current_user_can('manage_options')) {
+                    error_log('Permission denied for user ID: ' . $user->ID);
+                    return false;
+                }
+
+                error_log('Permission granted for user ID: ' . $user->ID);
+                return true;
+            },
+        ]);
+
+      
     }
 
     // Permission callbacks
     public static function check_logged_in_permissions() {
-        return is_user_logged_in(); // Allow only logged-in users
+        return is_user_logged_in(); // Allow only logged in users
     }
 
     public static function check_admin_permissions() {

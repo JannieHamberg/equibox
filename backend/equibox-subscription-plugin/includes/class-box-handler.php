@@ -51,7 +51,7 @@ class Box_Handler {
             [
                 'plan_id' => $plan_id,
                 'product_id' => $product_id,
-                'month_year' => $month_year . '-01', // Convert to a full date
+                'month_year' => $month_year . '-01',
                 'quantity' => $quantity,
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),

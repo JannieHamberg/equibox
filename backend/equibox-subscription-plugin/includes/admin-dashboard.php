@@ -1,14 +1,14 @@
 <?php
-// Add the menu item for admin dashboard
+// Add the menu item for the admin dashboard
 add_action('admin_menu', function () {
     add_menu_page(
-        'Admin Dashboard',              
-        'Admin Dashboard',              
-        'manage_options',               
-        'admin-dashboard',              
-        'render_admin_dashboard',       
-        'dashicons-chart-line',         
-        6                               // Position
+        'Admin Dashboard',
+        'Admin Dashboard',
+        'manage_options',
+        'admin-dashboard',
+        'render_admin_dashboard',
+        'dashicons-chart-line',
+        6 // Position
     );
 });
 
@@ -32,67 +32,89 @@ function render_admin_dashboard() {
     echo '</tbody>';
     echo '</table>';
 
-    // Add Product Form
-    echo '<h2>Add Product to Subscription Box</h2>';
-    echo '<form method="POST" action="" class="form-wrap">';
-    echo '<table class="form-table">';
-    echo '<tr><th><label for="plan_id">Subscription Plan:</label></th>';
-    echo '<td><select id="plan_id" name="plan_id" required class="regular-text">';
-    echo '<option value="">Select a subscription plan</option>';
-    $plans = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}subscription_plans");
+    // List Existing Subscription Plans
+    echo '<h2>Subscription Plans</h2>';
+    echo '<table id="subscription-plans-table" class="widefat fixed striped">';
+    echo '<thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Interval</th><th>Description</th><th>Actions</th></tr></thead>';
+    echo '<tbody>';
+
+    $plans = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}subscription_plans");
     foreach ($plans as $plan) {
-        echo "<option value='{$plan->id}'>{$plan->name}</option>";
+        echo "<tr data-id='{$plan->id}'>
+            <td>{$plan->id}</td>
+            <td>{$plan->name}</td>
+            <td>{$plan->price}</td>
+            <td>{$plan->interval}</td>
+            <td>{$plan->description}</td>
+            <td>
+                <button class='button edit-plan-button' 
+                    data-id='{$plan->id}' 
+                    data-name='{$plan->name}' 
+                    data-price='{$plan->price}' 
+                    data-interval='{$plan->interval}' 
+                    data-description='{$plan->description}'>Edit</button>
+                <button class='button button-danger delete-plan-button' 
+                    data-id='{$plan->id}' 
+                    data-nonce='" . wp_create_nonce('delete_plan_action') . "'>Delete</button>
+            </td>
+        </tr>";
     }
-    echo '</select></td></tr>';
-
-    echo '<tr><th><label for="product_id">Product:</label></th>';
-    echo '<td><select id="product_id" name="product_id" required class="regular-text">';
-    echo '<option value="">Select a product</option>';
-    $products = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}products");
-    foreach ($products as $product) {
-        echo "<option value='{$product->id}'>{$product->name}</option>";
-    }
-    echo '</select></td></tr>';
-
-    echo '<tr><th><label for="month_year">Month/Year:</label></th>';
-    echo '<td><input type="month" id="month_year" name="month_year" required class="regular-text"></td></tr>';
-
-    echo '<tr><th><label for="quantity">Quantity:</label></th>';
-    echo '<td><input type="number" id="quantity" name="quantity" required class="regular-text"></td></tr>';
+    echo '</tbody>';
     echo '</table>';
 
-    echo '<p class="submit">';
-    echo '<button type="submit" name="submit_add_product" class="button button-primary">Add Product</button>';
-    echo '</p>';
+    // Add and Edit Forms Side by Side
+    echo '<h2>Manage Subscription Plans</h2>';
+    echo '<div class="subscription-plan-forms" style="display: flex; gap: 20px;">';
+
+    // Add New Subscription Plan Form
+    echo '<div class="add_subscription_plan" style="flex: 1;">';
+    echo '<h3>Add New Subscription Plan</h3>';
+    echo '<form id="add-plan-form">';
+    echo '<input type="hidden" name="add_plan_nonce" value="' . wp_create_nonce('add_plan_action') . '">';
+    echo '<table class="form-table">';
+    echo '<tr><th><label for="name">Plan Name:</label></th>';
+    echo '<td><input type="text" id="plan_name" name="name" required class="regular-text"></td></tr>';
+    echo '<tr><th><label for="plan_price">Plan Price:</label></th>';
+    echo '<td><input type="number" step="0.01" id="plan_price" name="price" required class="regular-text"></td></tr>';
+    echo '<tr><th><label for="interval">Interval:</label></th>';
+    echo '<td>
+            <select id="plan_interval" name="interval" required class="regular-text">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+          </td></tr>';
+    echo '<tr><th><label for="plan_description">Description:</label></th>';
+    echo '<td><textarea id="plan_description" name="description" rows="3" class="regular-text"></textarea></td></tr>';
+    echo '</table>';
+    echo '<p class="submit"><button type="submit" class="button button-primary">Add Plan</button></p>';
     echo '</form>';
-
-    // Handle form submission
-    if (isset($_POST['submit_add_product'])) {
-        $plan_id = intval($_POST['plan_id']);
-        $product_id = intval($_POST['product_id']);
-        $month_year = sanitize_text_field($_POST['month_year']);
-        $quantity = intval($_POST['quantity']);
-
-        $table_name = $wpdb->prefix . 'box_products';
-        $result = $wpdb->insert(
-            $table_name,
-            [
-                'plan_id' => $plan_id,
-                'product_id' => $product_id,
-                'month_year' => $month_year . '-01', 
-                'quantity' => $quantity,
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql'),
-            ]
-        );
-
-        if ($result !== false) {
-            echo '<div class="notice notice-success is-dismissible"><p>Product added to box successfully!</p></div>';
-        } else {
-            echo '<div class="notice notice-error is-dismissible"><p>Error adding product to box.</p></div>';
-        }
-    }
     echo '</div>';
+
+    // Edit Subscription Plan Form
+    echo '<div class="edit-subscription-plan" style="flex: 1;">';
+    echo '<h3>Edit Subscription Plan</h3>';
+    echo '<form id="edit-plan-form">';
+    echo '<input type="hidden" id="edit_plan_id" name="id">';
+    echo '<input type="hidden" name="edit_plan_nonce" value="' . wp_create_nonce('edit_plan_action') . '">';
+    echo '<table class="form-table">';
+    echo '<tr><th><label for="edit_plan_name">Plan Name:</label></th>';
+    echo '<td><input type="text" id="edit_plan_name" name="name" required class="regular-text"></td></tr>';
+    echo '<tr><th><label for="edit_plan_price">Plan Price:</label></th>';
+    echo '<td><input type="number" step="0.01" id="edit_plan_price" name="price" required class="regular-text"></td></tr>';
+    echo '<tr><th><label for="edit_plan_interval">Interval:</label></th>';
+    echo '<td>
+            <select id="edit_plan_interval" name="interval" required class="regular-text">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+          </td></tr>';
+    echo '<tr><th><label for="edit_plan_description">Description:</label></th>';
+    echo '<td><textarea id="edit_plan_description" name="description" rows="3" class="regular-text"></textarea></td></tr>';
+    echo '</table>';
+    echo '<p class="submit"><button type="submit" class="button button-primary">Update Plan</button></p>';
+    echo '</form>';
+    echo '</div>';
+
+    echo '</div>'; // End subscription-plan-forms div
+    echo '</div>'; // End wrap div
 }
-
-
