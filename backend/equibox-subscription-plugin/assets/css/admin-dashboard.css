@@ -1,0 +1,8 @@
+.equibox-forms {
+    display: flex;
+    gap: 20px;
+}
+
+.form-container {
+    flex: 1;
+}

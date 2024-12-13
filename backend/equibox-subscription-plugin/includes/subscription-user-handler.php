@@ -1,4 +1,5 @@
 <?php
+
 class Subscription_Handler {
 
     // Register a new user
@@ -42,63 +43,62 @@ class Subscription_Handler {
         ]);
     }
 
-    // Subscribe a user to a plan
-    public static function subscribe_user($request) {
-        $user_id = get_current_user_id();
-        $plan_id = intval($request->get_param('plan_id'));
+    // Add a new subscription plan
+    public static function add_subscription_plan($request) {
+        $nonce = $request->get_param('nonce');
+        if (!wp_verify_nonce($nonce, 'add_plan_action')) {
+            return new WP_Error('invalid_nonce', 'Invalid nonce provided.', ['status' => 403]);
+        }
+        
+        $plan_name = sanitize_text_field($request->get_param('name'));
+        $plan_price = floatval($request->get_param('price'));
+        $interval = sanitize_text_field($request->get_param('interval')); 
+        $description = sanitize_textarea_field($request->get_param('description'));
+
 
         // Validate inputs
-        if (!$user_id || !$plan_id) {
-            return new WP_Error('missing_data', 'User ID and subscription plan ID are required.', ['status' => 400]);
+        if (!$plan_name || !$plan_price || !$interval) {
+            return new WP_Error('missing_data', 'Name, price, and interval are required.', ['status' => 400]);
         }
 
-        if ($plan_id <= 0) {
-            return new WP_Error('invalid_plan_id', 'Plan ID must be a positive number.', ['status' => 400]);
+        // Add plan to Stripe
+        try {
+            $stripe_plan = \Stripe\Price::create([
+                'unit_amount' => $plan_price * 100,
+                'currency' => 'sek',
+                'recurring' => ['interval' => $interval],
+                'product_data' => ['name' => $plan_name],
+            ]);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return new WP_Error('stripe_error', 'Failed to create plan in Stripe: ' . $e->getMessage(), ['status' => 500]);
         }
 
+        // Add plan to MySQL database
         global $wpdb;
-        $table_name = $wpdb->prefix . 'subscriptions';
-
-        // Check if the plan exists
-        $plan_exists = $wpdb->get_var(
-            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id)
-        );
-        if (!$plan_exists) {
-            return new WP_Error('invalid_plan', 'Subscription plan does not exist.', ['status' => 400]);
-        }
-
-        // Check if the user already has a subscription
-        $exists = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id)
-        );
-        if ($exists) {
-            return new WP_Error('already_subscribed', 'User already has a subscription.', ['status' => 400]);
-        }
-
-        // Insert the new subscription
         $inserted = $wpdb->insert(
-            $table_name,
+            "{$wpdb->prefix}subscription_plans",
             [
-                'user_id' => $user_id,
-                'plan_id' => $plan_id,
-                'status' => 'active',
-                'description' => 'New subscription',
+                'name' => $plan_name,
+                'price' => $plan_price,
+                'interval' => $interval,
+                'stripe_plan_id' => $stripe_plan->id,
+                'description' => $description,
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
             ]
         );
 
         if ($inserted === false) {
-            return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
+            return new WP_Error('db_error', 'Failed to insert subscription plan into the database.', ['status' => 500]);
         }
 
         return rest_ensure_response([
             'success' => true,
-            'message' => 'Subscription created successfully!',
+            'message' => 'Subscription plan added successfully!',
         ]);
     }
 
-    // Update user subscription
+        // Update user subscription
     public static function update_user_subscription($request) {
         $user_id = get_current_user_id();
         $plan_id = intval($request->get_param('plan_id'));
@@ -106,10 +106,6 @@ class Subscription_Handler {
         // Validate inputs
         if (!$user_id || !$plan_id) {
             return new WP_Error('missing_data', 'User ID and new plan ID are required.', ['status' => 400]);
-        }
-
-        if ($plan_id <= 0) {
-            return new WP_Error('invalid_plan_id', 'Plan ID must be a positive number.', ['status' => 400]);
         }
 
         global $wpdb;
@@ -121,14 +117,6 @@ class Subscription_Handler {
         );
         if (!$subscription) {
             return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
-        }
-
-        // Check if the plan exists
-        $plan_exists = $wpdb->get_var(
-            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id)
-        );
-        if (!$plan_exists) {
-            return new WP_Error('invalid_plan', 'Subscription plan does not exist.', ['status' => 400]);
         }
 
         // Update the subscription
