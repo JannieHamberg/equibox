@@ -21,9 +21,14 @@ export default function Prenumerationer() {
         if (!response.ok) throw new Error('Failed to fetch subscription plans');
         const data = await response.json();
         setPlans(data.data);
-      } catch (err: any) {
-        setError(err.message);
-      }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+            setError(err.message);
+        } else {
+            setError("An unknown error occurred");
+        }
+    }
+    
     };
 
     fetchPlans();
