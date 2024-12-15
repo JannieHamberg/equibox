@@ -10,6 +10,18 @@ class REST_API {
     }
 
     public static function register_routes() {
+
+        // Public endpoint to get all subscription plans
+        register_rest_route(
+            'equibox/v1',
+            '/subscription_plans',
+            [
+                'methods' => 'GET',
+                'callback' => ['Subscription_Handler', 'get_all_subscription_plans'],
+                'permission_callback' => '__return_true', // Allow anyone to access
+            ]
+        );
+
         // User registration route
         register_rest_route(
             'equibox/v1',
