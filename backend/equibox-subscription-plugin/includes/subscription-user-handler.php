@@ -43,60 +43,52 @@ class Subscription_Handler {
         ]);
     }
 
-    // Add a new subscription plan
-    public static function add_subscription_plan($request) {
-        $nonce = $request->get_param('nonce');
-        if (!wp_verify_nonce($nonce, 'add_plan_action')) {
-            return new WP_Error('invalid_nonce', 'Invalid nonce provided.', ['status' => 403]);
+     //start subscriptio
+    public static function start_user_subscription($request) {
+        $user_id = get_current_user_id(); 
+        $plan_id = intval($request->get_param('plan_id')); // Plan ID from the frontend
+    
+        if (!$user_id || !$plan_id) {
+            return new WP_Error('missing_data', 'User ID and Plan ID are required.', ['status' => 400]);
         }
-        
-        $plan_name = sanitize_text_field($request->get_param('name'));
-        $plan_price = floatval($request->get_param('price'));
-        $interval = sanitize_text_field($request->get_param('interval')); 
-        $description = sanitize_textarea_field($request->get_param('description'));
-
-
-        // Validate inputs
-        if (!$plan_name || !$plan_price || !$interval) {
-            return new WP_Error('missing_data', 'Name, price, and interval are required.', ['status' => 400]);
-        }
-
-        // Add plan to Stripe
-        try {
-            $stripe_plan = \Stripe\Price::create([
-                'unit_amount' => $plan_price * 100,
-                'currency' => 'sek',
-                'recurring' => ['interval' => $interval],
-                'product_data' => ['name' => $plan_name],
-            ]);
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-            return new WP_Error('stripe_error', 'Failed to create plan in Stripe: ' . $e->getMessage(), ['status' => 500]);
-        }
-
-        // Add plan to MySQL database
+    
         global $wpdb;
-        $inserted = $wpdb->insert(
-            "{$wpdb->prefix}subscription_plans",
-            [
-                'name' => $plan_name,
-                'price' => $plan_price,
-                'interval' => $interval,
-                'stripe_plan_id' => $stripe_plan->id,
-                'description' => $description,
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql'),
-            ]
-        );
-
-        if ($inserted === false) {
-            return new WP_Error('db_error', 'Failed to insert subscription plan into the database.', ['status' => 500]);
+        $table_name = $wpdb->prefix . 'subscriptions';
+    
+        // Check if the plan exists in the subscription_plans table
+        $plan = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id
+        ));
+    
+        if (!$plan) {
+            return new WP_Error('invalid_plan', 'The selected subscription plan does not exist.', ['status' => 404]);
         }
-
+    
+        // Add a new subscription
+        $inserted = $wpdb->insert($table_name, [
+            'user_id' => $user_id,
+            'plan_id' => $plan_id,
+            'status' => 'active',
+            'description' => 'New subscription',
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+        ]);
+    
+        if ($inserted === false) {
+            return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
+        }
+    
         return rest_ensure_response([
             'success' => true,
-            'message' => 'Subscription plan added successfully!',
+            'message' => 'Subscription started successfully!',
+            'data' => [
+                'user_id' => $user_id,
+                'plan_id' => $plan_id,
+                'status' => 'active',
+            ],
         ]);
     }
+    
 
         // Update user subscription
     public static function update_user_subscription($request) {
@@ -181,4 +173,35 @@ class Subscription_Handler {
             'message' => 'Subscription canceled successfully!',
         ]);
     }
+
+    // Get all subscription plans (public)
+    public static function get_all_subscription_plans($request) {
+        global $wpdb;
+    
+        // Ensure table name is prefixed properly
+        $table_name = $wpdb->prefix . 'subscription_plans';
+        error_log("Fetching data from table: " . $table_name);
+    
+        // Safe SQL query with backticks
+        $query = "SELECT `id`, `name`, `price`, `interval`, `description` FROM `$table_name`";
+        $plans = $wpdb->get_results($query, ARRAY_A);
+    
+        // Check for errors
+        if ($wpdb->last_error) {
+            error_log("Database Error: " . $wpdb->last_error);
+            return new WP_Error('db_error', 'Failed to fetch subscription plans.', ['status' => 500]);
+        }
+    
+        // Check if plans are empty
+        if (empty($plans)) {
+            return new WP_Error('no_plans', 'No subscription plans found.', ['status' => 404]);
+        }
+    
+        return rest_ensure_response([
+            'success' => true,
+            'data' => $plans,
+        ]);
+    }
+    
+
 }
