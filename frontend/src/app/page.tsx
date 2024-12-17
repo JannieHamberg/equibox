@@ -1,12 +1,13 @@
+import HeroHome from "./components/hero";
 import Prenumerationer from "./subscriptions/page";
 
 
 export default function Home() {
   return (
     
-    <div className="container alert alert-primary" role="alert">
+    <div className=" w-full mx-auto ">
    
-      <h1>Equibox</h1>
+   <HeroHome />
     <Prenumerationer />
         </div>
 
