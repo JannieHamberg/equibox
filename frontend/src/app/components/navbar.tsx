@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart, faUser } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
+import Link from 'next/link';
 
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ export default function CustomNavbar() {
       <div  className="navbar  bg-white fixed top-8 w-full z-10 px-8">
         <div className="flex items-center justify-between w-full">
           {/* Left Side: Logo */}
-          <a href="/" className="flex items-center">
+          <Link href="/" className="flex items-center">
             <Image
               src="/small-nav-logo-gray.svg"
               alt="Equibox Logo"
@@ -34,7 +35,7 @@ export default function CustomNavbar() {
               priority
               className="h-auto w-auto"
             />
-          </a>
+         </Link>
 
           {/* Right Side: Icons */}
           <div className="flex text-gray-900 gap-4 items-center">
