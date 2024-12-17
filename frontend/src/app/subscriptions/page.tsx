@@ -37,7 +37,7 @@ export default function Prenumerationer() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className='mt-12'>
+    <div className='mt-12 mb-10'>
       <h1>Subscription Plans</h1>
       <ul>
         {plans.map((plan) => (
