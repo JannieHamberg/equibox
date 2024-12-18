@@ -49,7 +49,7 @@ export default function Prenumerationer() {
       <h2>{plan.name}</h2>
       <p>{plan.description}</p>
       {plan.image_url && (
-        <img
+        <Image
           src={plan.image_url} // Ensure `image_url` is defined
           alt={plan.name}
           width={200}
