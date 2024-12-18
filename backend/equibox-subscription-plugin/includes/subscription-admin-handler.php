@@ -32,6 +32,8 @@ class Subscription_Admin_Handler {
         $plan_price = floatval($request->get_param('price'));
         $interval = sanitize_text_field($request->get_param('interval'));
         $description = sanitize_textarea_field($request->get_param('description'));
+        $image_url = esc_url_raw($request->get_param('image_url'));
+
 
         if (!$plan_name || !$plan_price || !$interval) {
             return new WP_Error('missing_data', 'Name, price, and interval are required.', ['status' => 400]);
@@ -46,6 +48,7 @@ class Subscription_Admin_Handler {
                 'price' => $plan_price,
                 'interval' => $interval,
                 'description' => $description,
+                'image_url' => $image_url,
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
             ]
@@ -105,6 +108,8 @@ class Subscription_Admin_Handler {
         $plan_price = floatval($request->get_param('price'));
         $interval = sanitize_text_field($request->get_param('interval'));
         $description = sanitize_textarea_field($request->get_param('description'));
+        $image_url = esc_url_raw($request->get_param('image_url'));
+
 
         if (!$plan_id || !$plan_name || !$plan_price || !$interval) {
             return new WP_Error('missing_data', 'ID, name, price, and interval are required.', ['status' => 400]);
@@ -119,6 +124,7 @@ class Subscription_Admin_Handler {
                 'price' => $plan_price,
                 'interval' => $interval,
                 'description' => $description,
+                'image_url' => $image_url,
                 'updated_at' => current_time('mysql'),
             ],
             ['id' => $plan_id]
@@ -137,6 +143,7 @@ class Subscription_Admin_Handler {
                 'price' => $plan_price,
                 'interval' => $interval,
                 'description' => $description,
+                'image_url' => $image_url,
             ],
         ]);
         

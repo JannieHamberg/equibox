@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 price: formData.get("price"),
                 interval: formData.get("interval"),
                 description: formData.get("description"),
+                image_url: formData.get("image_url"),
                 nonce: document.querySelector('[name="add_plan_nonce"]').value,
             }),
             
@@ -39,13 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
                             <td>${plan.price}</td>
                             <td>${plan.interval}</td>
                             <td>${plan.description}</td>
+                             <td>${plan.image_url || ''}</td>
                             <td>
                                 <button class="button edit-plan-button" 
                                     data-id="${plan.id}" 
                                     data-name="${plan.name}" 
                                     data-price="${plan.price}" 
                                     data-interval="${plan.interval}" 
-                                    data-description="${plan.description}">Edit</button>
+                                    data-description="${plan.description}"
+                                    data-image-url="${plan.image_url}">Edit</button>
                                 <button class="button button-danger delete-plan-button" data-id="${plan.id}">Delete</button>
                             </td>
                         </tr>`;
@@ -73,6 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("edit_plan_price").value = button.dataset.price;
             document.getElementById("edit_plan_interval").value = button.dataset.interval;
             document.getElementById("edit_plan_description").value = button.dataset.description;
+            document.getElementById("edit_plan_image_url").value = button.dataset.imageUrl || '';
+
 
             console.log("Populating edit form with plan data:", button.dataset);
             editPlanForm.scrollIntoView({ behavior: "smooth" });
@@ -100,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 price: formData.get("price"),
                 interval: formData.get("interval"),
                 description: formData.get("description"),
+                image_url: formData.get("image_url"), 
                 nonce: document.querySelector('[name="edit_plan_nonce"]').value,
             }),
         })
@@ -117,13 +123,17 @@ document.addEventListener("DOMContentLoaded", () => {
                             <td>${plan.price}</td>
                             <td>${plan.interval}</td>
                             <td>${plan.description}</td>
+                             <td>
+                                ${plan.image_url || ''}
+                            </td>
                             <td>
                                 <button class="button edit-plan-button" 
                                     data-id="${plan.id}" 
                                     data-name="${plan.name}" 
                                     data-price="${plan.price}" 
                                     data-interval="${plan.interval}" 
-                                    data-description="${plan.description}">Edit</button>
+                                    data-description="${plan.description}"
+                                    data-image-url="${plan.image_url}">Edit</button>
                                 <button class="button button-danger delete-plan-button" data-id="${plan.id}">Delete</button>
                             </td>`;
                     }
