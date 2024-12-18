@@ -35,7 +35,7 @@ function render_admin_dashboard() {
     // List Existing Subscription Plans
     echo '<h2>Subscription Plans</h2>';
     echo '<table id="subscription-plans-table" class="widefat fixed striped">';
-    echo '<thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Interval</th><th>Description</th><th>Actions</th></tr></thead>';
+    echo '<thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Interval</th><th>Description</th><th>Image URL</th><th>Actions</th></tr></thead>';
     echo '<tbody>';
 
     $plans = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}subscription_plans");
@@ -46,13 +46,15 @@ function render_admin_dashboard() {
             <td>{$plan->price}</td>
             <td>{$plan->interval}</td>
             <td>{$plan->description}</td>
+            <td>" . esc_html($plan->image_url) . "</td>
             <td>
                 <button class='button edit-plan-button' 
                     data-id='{$plan->id}' 
                     data-name='{$plan->name}' 
                     data-price='{$plan->price}' 
                     data-interval='{$plan->interval}' 
-                    data-description='{$plan->description}'>Edit</button>
+                    data-description='{$plan->description}'
+                    data-image-url='{$plan->image_url}'>Edit</button>
                 <button class='button button-danger delete-plan-button' 
                     data-id='{$plan->id}' 
                     data-nonce='" . wp_create_nonce('delete_plan_action') . "'>Delete</button>
@@ -72,11 +74,11 @@ function render_admin_dashboard() {
     echo '<form id="add-plan-form">';
     echo '<input type="hidden" name="add_plan_nonce" value="' . wp_create_nonce('add_plan_action') . '">';
     echo '<table class="form-table">';
-    echo '<tr><th><label for="name">Plan Name:</label></th>';
+    echo '<tr><th><label for="plan_name">Plan Name:</label></th>';
     echo '<td><input type="text" id="plan_name" name="name" required class="regular-text"></td></tr>';
     echo '<tr><th><label for="plan_price">Plan Price:</label></th>';
     echo '<td><input type="number" step="0.01" id="plan_price" name="price" required class="regular-text"></td></tr>';
-    echo '<tr><th><label for="interval">Interval:</label></th>';
+    echo '<tr><th><label for="plan_interval">Interval:</label></th>';
     echo '<td>
             <select id="plan_interval" name="interval" required class="regular-text">
                 <option value="monthly">Monthly</option>
@@ -85,6 +87,8 @@ function render_admin_dashboard() {
           </td></tr>';
     echo '<tr><th><label for="plan_description">Description:</label></th>';
     echo '<td><textarea id="plan_description" name="description" rows="3" class="regular-text"></textarea></td></tr>';
+    echo '<tr><th><label for="plan_image_url">Image URL:</label></th>';
+    echo '<td><input type="text" id="plan_image_url" name="image_url" class="regular-text"></td></tr>';
     echo '</table>';
     echo '<p class="submit"><button type="submit" class="button button-primary">Add Plan</button></p>';
     echo '</form>';
@@ -110,6 +114,8 @@ function render_admin_dashboard() {
           </td></tr>';
     echo '<tr><th><label for="edit_plan_description">Description:</label></th>';
     echo '<td><textarea id="edit_plan_description" name="description" rows="3" class="regular-text"></textarea></td></tr>';
+    echo '<tr><th><label for="edit_plan_image_url">Image URL:</label></th>';
+    echo '<td><input type="text" id="edit_plan_image_url" name="image_url" class="regular-text"></td></tr>';
     echo '</table>';
     echo '<p class="submit"><button type="submit" class="button button-primary">Update Plan</button></p>';
     echo '</form>';
