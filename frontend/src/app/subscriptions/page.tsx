@@ -1,4 +1,7 @@
-"use client"; // Must be at the top of the file
+"use client"; 
+
+import Image from 'next/image';
+
 
 import { useEffect, useState } from 'react';
 
@@ -8,6 +11,7 @@ interface Prenumerationer {
   price: number;
   interval: string;
   description: string;
+  image_url: string;
 }
 
 export default function Prenumerationer() {
@@ -37,15 +41,26 @@ export default function Prenumerationer() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className='mt-12 mb-10'>
+    <div className='pl-20'>
       <h1>Subscription Plans</h1>
       <ul>
-        {plans.map((plan) => (
-          <li key={plan.id}>
-            {plan.name} - {plan.price} SEK ({plan.interval})
-          </li>
-        ))}
-      </ul>
+  {plans.map((plan) => (
+    <li key={plan.id}>
+      <h2>{plan.name}</h2>
+      <p>{plan.description}</p>
+      {plan.image_url && (
+        <Image
+          src={plan.image_url} 
+          alt={plan.name}
+          width={200}
+          height={100}
+          style={{ objectFit: 'contain' }}
+        />
+      )}
+    </li>
+  ))}
+</ul>
+
     </div>
   );
 }

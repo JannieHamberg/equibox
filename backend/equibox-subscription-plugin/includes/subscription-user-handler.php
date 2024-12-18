@@ -183,7 +183,7 @@ class Subscription_Handler {
         error_log("Fetching data from table: " . $table_name);
     
         // Safe SQL query with backticks
-        $query = "SELECT `id`, `name`, `price`, `interval`, `description` FROM `$table_name`";
+        $query = "SELECT `id`, `name`, `price`, `interval`, `description`, `image_url` FROM `$table_name`";
         $plans = $wpdb->get_results($query, ARRAY_A);
     
         // Check for errors
@@ -196,6 +196,9 @@ class Subscription_Handler {
         if (empty($plans)) {
             return new WP_Error('no_plans', 'No subscription plans found.', ['status' => 404]);
         }
+
+        // Log fetched plans
+        error_log('Fetched Plans: ' . print_r($plans, true));
     
         return rest_ensure_response([
             'success' => true,

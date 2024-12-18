@@ -1,6 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Allow external images
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.ibb.co", // Allow images from i.ibb.co
+        port: "",
+        pathname: "/**", // Allow all paths
+      },
+    ],
+  },
+
+  // API Rewrites
   async rewrites() {
     return [
       {
