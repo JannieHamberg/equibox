@@ -30,7 +30,7 @@ h1, h2, h3 {
   color: var(--color-gold-light);
 }
 
-.cta-btn {
+.btn, .cta-btn {
   background-color: var(--color-gold);
   color: #fff;
 }
