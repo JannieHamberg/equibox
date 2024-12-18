@@ -1,0 +1,29 @@
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.scrolltext-container {
+  overflow: hidden;
+  background-color: #b99955;
+  padding: 0.5rem 0;
+  white-space: nowrap;
+  display: flex;
+  /* margin-top: 1.5rem; */
+}
+
+.scrolltext {
+  display: flex; 
+  animation: marquee 60s linear infinite;
+  
+}
+
+.scrolltext span {
+  color: #fff;
+  font-size: 1.25rem;
+  margin-right: 13rem; 
+}

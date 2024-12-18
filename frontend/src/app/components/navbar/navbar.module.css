@@ -1,0 +1,40 @@
+/* Navbar shadow */
+.navbar-shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  .navbar-shadow:hover {
+    box-shadow: none;
+  }
+  
+  /* Top bar slideshow */
+  .topbar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #333;
+    color: white;
+    height: 2.5rem;
+    overflow: hidden;
+  }
+  
+  .slideshow-text {
+    display: inline-block;
+    animation: fadeInOut 10s infinite;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+  }
+  
+  @keyframes fadeInOut {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+  }
+  

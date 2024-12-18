@@ -1,29 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart, faUser } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
-import Link from 'next/link';
+import Link from "next/link";
+import styles from "./navbar.module.css";
 
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  // Slideshow text for the top bar
+  const topBarTexts = [
+    "Minishoppen - kommer snart!",
+    "Prenumerera på vårt nyhetsbrev och få 20% rabatt första månaden!",
+    "Lansering våren 2025 – Förboka din box nu!",
+  ];
+
+  // Automatic text change every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTextIndex((prev) => (prev + 1) % topBarTexts.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [topBarTexts.length]);
 
   return (
     <div className="relative overflow-x-hidden">
-
-        {/* Top Bar */}
-      <div className="bg-gray-800 text-white text-sm py-2 px-8 flex justify-between items-center w-full fixed top-0 z-20">
-        <div>
-          <span>Minishoppen - kommer snart!</span>
-        </div>
-        <div>
-          <span>Prenumerera på vårt nyhetsbrev och få 20% rabatt första månaden!</span>
-        </div>
+      {/* Top Bar: Slideshow Text */}
+      <div className="bg-black text-white text-sm py-2 px-8 flex justify-center items-center w-full fixed top-0 z-40">
+        <span className="animate-fade-in">{topBarTexts[currentTextIndex]}</span>
       </div>
-      
-      {/* Navbar */}
-      <div  className="navbar  bg-white fixed top-8 w-full z-10 px-8">
+
+      {/* Navbar: Shadow on Hover */}
+      <div
+        className={`navbar ${styles["navbar-shadow"]} bg-white fixed top-8 w-full z-40 px-8`}
+      >
         <div className="flex items-center justify-between w-full">
           {/* Left Side: Logo */}
           <Link href="/" className="flex items-center">
@@ -35,26 +48,23 @@ export default function CustomNavbar() {
               priority
               className="h-auto w-auto"
             />
-         </Link>
+          </Link>
 
           {/* Right Side: Icons */}
           <div className="flex text-gray-900 gap-4 items-center">
             {/* User Profile Icon */}
-            <FontAwesomeIcon
-              icon={faUser}
-              className="h-5 w-5  cursor-pointer"
-            />
+            <FontAwesomeIcon icon={faUser} className="h-5 w-5 cursor-pointer" />
 
             {/* Shopping Cart Icon */}
             <FontAwesomeIcon
               icon={faShoppingCart}
-              className="h-5 w-5  cursor-pointer"
+              className="h-5 w-5 cursor-pointer"
             />
 
             {/* Sidebar Toggle Button */}
             <button
               onClick={() => setIsOpen(true)}
-              className="btn btn-ghost  text-2xl"
+              className="p-2 rounded-lg hover:bg-gray-200 text-gray-900 text-2xl"
               id="btn-nav"
             >
               ☰
@@ -65,14 +75,15 @@ export default function CustomNavbar() {
 
       {/* Right-Side Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full bg-white  w-64 transform ${
+        className={`fixed top-0 right-0 h-full bg-white w-64 transform ${
           isOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out z-20`}
+        } transition-transform duration-300 ease-in-out z-50 shadow-lg`}
       >
         {/* Close Button */}
         <button
           onClick={() => setIsOpen(false)}
-          className="text-2xl  pl-4 pt-2"
+          className="text-2xl pl-4 pt-2 cursor-pointer hover:text-gray-500 transition-colors duration-200"
+          id="btn-close"
         >
           ✕
         </button>
@@ -101,17 +112,14 @@ export default function CustomNavbar() {
           </li>
         </ul>
 
-        {/* Icons Sidebar */}
+        {/* Sidebar Icons */}
         <div className="mt-8 flex flex-col gap-4 px-8">
           <div className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faUser} className="h-5 w-5 " />
+            <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
             <span>Mitt konto</span>
           </div>
           <div className="flex items-center gap-2">
-            <FontAwesomeIcon
-              icon={faShoppingCart}
-              className="h-5 w-5 "
-            />
+            <FontAwesomeIcon icon={faShoppingCart} className="h-5 w-5" />
             <span>Kundvagn</span>
           </div>
         </div>
@@ -120,8 +128,8 @@ export default function CustomNavbar() {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0  bg-opacity-50 z-20"
-          onClick={() => setIsOpen(false)} // Closes sidebar when clicking outside
+          className="fixed inset-0 bg-black bg-opacity-50 z-10"
+          onClick={() => setIsOpen(false)} // Close sidebar when clicking outside
         ></div>
       )}
     </div>
