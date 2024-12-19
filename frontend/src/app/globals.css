@@ -33,4 +33,11 @@ h1, h2, h3 {
 .btn, .cta-btn {
   background-color: var(--color-gold);
   color: #fff;
+  transition: all 0.3s ease; 
+  border-radius: 0;
+}
+
+.btn:hover, .cta-btn:hover {
+  background-color: var(--color-dark-grey); 
+  transform: scale(1.05); 
 }

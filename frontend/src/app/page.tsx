@@ -1,6 +1,6 @@
 import HeroHome from "./components/hero";
 import ScrollTextBar from "./components/scrollbar/scrolltext";
-import Prenumerationer from "./subscriptions/page";
+import SubscriptionPlans from "./subscriptions/components/subscription-plans";
 
 
 export default function Home() {
@@ -9,9 +9,8 @@ export default function Home() {
     <div className=" w-full mx-auto ">
    
    <HeroHome />
-   <ScrollTextBar />
-    <Prenumerationer />
-  
+    <ScrollTextBar />
+      <SubscriptionPlans />
         </div>
 
 

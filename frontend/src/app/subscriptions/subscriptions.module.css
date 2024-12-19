@@ -1,0 +1,22 @@
+.cardNoRadius {
+    border-radius: 0;
+}
+
+  
+  .cardCustom {
+    max-width: 450px; 
+    width: 100%; 
+    margin: 0 auto;
+    
+  }
+
+
+
+  /* Media queries */
+
+  @media (max-width: 768px) {
+    .cardCustom {
+      max-width: 100%; 
+    }
+  }
+  
