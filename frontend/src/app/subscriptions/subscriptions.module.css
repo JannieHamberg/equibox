@@ -5,7 +5,18 @@
   
   .cardCustom {
     max-width: 450px; 
-    min-width: 400px; 
+    width: 100%; 
     margin: 0 auto;
     
   }
+
+
+
+  /* Media queries */
+
+  @media (max-width: 768px) {
+    .cardCustom {
+      max-width: 100%; 
+    }
+  }
+  

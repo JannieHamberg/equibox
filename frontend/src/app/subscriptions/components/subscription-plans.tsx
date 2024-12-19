@@ -39,16 +39,17 @@ export default function SubscriptionPlans() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="flex items-center justify-center mt-32 mx-auto ml-20  ">
+    <div className="flex items-center justify-end mt-32    ">
   {/* Title Section */}
-  <div className="flex-shrink-0 text-center">
+  <div className="flex-shrink-0 lg:text-left 2xl:text-center lg:w-64 2xl:w-fit">
     <h2 className="text-4xl font-bold text-gray-800">
       Våra Boxar
     </h2>
   </div>
 
   {/* Cards Section */}
-  <div className="grid grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] gap-8 p-8 max-w-screen-xl ml-52">
+  <div className="flex justify-end 2xl:justify-center w-full  lg:w-3/4 ">
+  <div className="grid grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] gap-8 p-8 max-w-screen-xl ">
 
     {plans.map((plan) => (
       <div
@@ -76,6 +77,7 @@ export default function SubscriptionPlans() {
         </div>
       </div>
     ))}
+  </div>
   </div>
 </div>
 
