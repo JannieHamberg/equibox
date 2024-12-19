@@ -4,10 +4,6 @@
     transition: box-shadow 0.3s ease-in-out;
   }
   
-  .navbar-shadow:hover {
-    box-shadow: none;
-  }
-  
   /* Top bar slideshow */
   .topbar-container {
     display: flex;

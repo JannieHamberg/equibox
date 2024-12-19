@@ -61,14 +61,37 @@ export default function CustomNavbar() {
               className="h-5 w-5 cursor-pointer"
             />
 
-            {/* Sidebar Toggle Button */}
-            <button
-              onClick={() => setIsOpen(true)}
-              className="p-2 rounded-lg hover:bg-gray-200 text-gray-900 text-2xl"
-              id="btn-nav"
-            >
-              ☰
-            </button>
+            {/* Sidebar Toggle Button with DaisyUI Swap */}
+            <label className="btn-circle swap swap-rotate">
+              {/* Checkbox to toggle state */}
+              <input
+                type="checkbox"
+                checked={isOpen}
+                onChange={() => setIsOpen((prev) => !prev)}
+              />
+
+              {/* Hamburger Icon */}
+              <svg
+                className="swap-off fill-current"
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 512 512"
+              >
+                <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
+              </svg>
+
+              {/* Close Icon */}
+              <svg
+                className="swap-on fill-current"
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 512 512"
+              >
+                <polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49" />
+              </svg>
+            </label>
           </div>
         </div>
       </div>
@@ -79,16 +102,13 @@ export default function CustomNavbar() {
           isOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 ease-in-out z-50 shadow-lg`}
       >
-        {/* Close Button */}
+        {/* Sidebar Content */}
         <button
           onClick={() => setIsOpen(false)}
           className="text-2xl pl-4 pt-2 cursor-pointer hover:text-gray-500 transition-colors duration-200"
-          id="btn-close"
         >
           ✕
         </button>
-
-        {/* Sidebar Content */}
         <ul className="p-8">
           <li className="py-4 text-2xl">
             <a href="#" className="hover:text-gray-400">
@@ -107,29 +127,22 @@ export default function CustomNavbar() {
           </li>
           <li className="text-2xl py-4">
             <a href="#" className="hover:text-gray-400">
+              FAQ
+            </a>
+          </li>
+          <li className="text-2xl py-4">
+            <a href="#" className="hover:text-gray-400">
               Support
             </a>
           </li>
         </ul>
-
-        {/* Sidebar Icons */}
-        <div className="mt-8 flex flex-col gap-4 px-8">
-          <div className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
-            <span>Mitt konto</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faShoppingCart} className="h-5 w-5" />
-            <span>Kundvagn</span>
-          </div>
-        </div>
       </div>
 
       {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-10"
-          onClick={() => setIsOpen(false)} // Close sidebar when clicking outside
+          onClick={() => setIsOpen(false)}
         ></div>
       )}
     </div>

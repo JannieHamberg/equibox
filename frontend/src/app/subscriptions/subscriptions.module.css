@@ -1,0 +1,11 @@
+.cardNoRadius {
+    border-radius: 0;
+}
+
+  
+  .cardCustom {
+    max-width: 450px; 
+    min-width: 400px; 
+    margin: 0 auto;
+    
+  }
