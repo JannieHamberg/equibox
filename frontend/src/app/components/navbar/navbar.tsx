@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShoppingCart, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./navbar.module.css";
@@ -54,12 +54,7 @@ export default function CustomNavbar() {
           {/* Right Side: Icons */}
           <div className="flex text-gray-900 gap-4 items-center">
             {/* User Profile Icon */}
-           {/*  <Link href="/userprofile">
-              <FontAwesomeIcon
-                icon={faUser}
-                className="h-5 w-5 cursor-pointer text-gray-900"
-              />
-            </Link> */}
+    
             <UserIcon/>
             
             {/* Shopping Cart Icon */}

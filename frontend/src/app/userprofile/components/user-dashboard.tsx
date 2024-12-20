@@ -90,7 +90,7 @@ export default function UserDashboard() {
       console.log("Available plans data:", data);
   
       // Map over the data to ensure image_url exists
-      const plansWithImage = data.data.map((plan: any) => ({
+      const plansWithImage = data.data.map((plan: Plan) => ({
         ...plan,
         image_url: plan.image_url || "default_image_url_here", /* TODO: add default iamge url */
       }));

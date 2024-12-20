@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState } from "react";
 
 interface Plan {
@@ -40,8 +40,14 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
         onClick={() => setSelectedPlanId(plan.id)}
       >
         <figure>
-          <img src={plan.image_url} alt={plan.name} className="w-full h-48 object-contain" />
-        </figure>
+        <Image
+          src={plan.image_url} 
+          alt={plan.name}       
+          width={300}           
+          height={200}         
+          className="w-full h-48 object-contain" 
+        />
+      </figure>
         <div className="card-body">
           <h2 className="card-title">{plan.name}</h2>
           <p>{plan.description}</p>
