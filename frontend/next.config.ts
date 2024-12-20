@@ -17,9 +17,26 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/subscriptions/prenumerationer", // Local route
+        source: "/subscriptions/prenumerationer", // Proxy local route
         destination: "https://backend.equibox.se/wp-json/equibox/v1/subscription_plans", // Actual API endpoint
       },
+      {
+        source: "/user/subscription", 
+        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscriptions", 
+    },
+    {
+        source: "/user/subscription/update", 
+        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscriptions/update",
+    },
+    {
+        source: "/user/subscription/cancel", 
+        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscriptions/cancel", 
+    },
+    {
+      source: "/register", 
+      destination: "https://backend.equibox.se/wp-json/equibox/v1/register",
+    },
+ 
     ];
   },
 };

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShoppingCart, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./navbar.module.css";
+import UserIcon from "./user-profile-icon";
 
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,8 +54,9 @@ export default function CustomNavbar() {
           {/* Right Side: Icons */}
           <div className="flex text-gray-900 gap-4 items-center">
             {/* User Profile Icon */}
-            <FontAwesomeIcon icon={faUser} className="h-5 w-5 cursor-pointer" />
-
+    
+            <UserIcon/>
+            
             {/* Shopping Cart Icon */}
             <FontAwesomeIcon
               icon={faShoppingCart}

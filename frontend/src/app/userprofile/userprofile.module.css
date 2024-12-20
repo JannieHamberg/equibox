@@ -1,0 +1,24 @@
+/* user-dashboard.module.css */
+
+  
+
+  
+  .btn-error {
+    background-color: #252525;
+    color: #fff;
+    border: none;
+    
+  }
+  
+  .bg-white {
+    background-color: #ffffff;
+  }
+  
+  .shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .rounded {
+    border-radius: 8px;
+  }
+  
