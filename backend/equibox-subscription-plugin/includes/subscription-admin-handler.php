@@ -143,7 +143,6 @@ class Subscription_Admin_Handler {
             "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d",
             $plan_id
         ), ARRAY_A);
-
         if (!$plan) {
             return new WP_Error('db_error', 'Failed to retrieve the newly added subscription plan.', ['status' => 500]);
         }

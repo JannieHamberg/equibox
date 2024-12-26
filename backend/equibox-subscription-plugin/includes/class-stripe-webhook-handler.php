@@ -75,7 +75,6 @@ class Stripe_Webhook_Handler {
 
     private static function handle_payment_failed($invoice) {
         global $wpdb;
-
         $subscription_id = $invoice->subscription;
 
         $wpdb->update(

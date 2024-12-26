@@ -52,6 +52,7 @@ class Subscription_Handler {
             return new WP_Error('missing_data', 'User ID and Plan ID are required.', ['status' => 400]);
         }
 
+        // Add plan to MySQL database
         global $wpdb;
         $table_name = $wpdb->prefix . 'subscriptions';
 
@@ -77,7 +78,7 @@ class Subscription_Handler {
         ]);
 
         if ($inserted === false) {
-            return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
+            return new WP_Error('db_error', 'Failed to insert subscription plan into the database.', ['status' => 500]);
         }
 
         return rest_ensure_response([
@@ -91,7 +92,7 @@ class Subscription_Handler {
         ]);
     }
 
-    // Update user subscription
+        // Update user subscription
     public static function update_user_subscription($request) {
         $user_id = get_current_user_id();
         $plan_id = intval($request->get_param('plan_id'));
