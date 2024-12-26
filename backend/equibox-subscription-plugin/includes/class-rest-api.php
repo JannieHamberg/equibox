@@ -117,6 +117,13 @@ class REST_API {
             ]
         );
 
+        register_rest_route('equibox/v1', '/categories', [
+            'methods' => 'GET',
+            'callback' => ['Product_Handler', 'get_all_categories'],
+            'permission_callback' => '__return_true', // Allow anyone to access
+        ]);
+        
+
         register_rest_route(
             'equibox/v1',
             '/boxes/products',
@@ -133,6 +140,16 @@ class REST_API {
             [
                 'methods' => 'PUT',
                 'callback' => ['Box_Handler', 'update_box_product'],
+                'permission_callback' => [__CLASS__, 'check_admin_permissions'], // Admin only
+            ]
+        );
+
+        register_rest_route(
+            'equibox/v1',
+            '/admin/subscription_plans/(?P<id>\d+)/products',
+            [
+                'methods' => 'GET',
+                'callback' => ['Subscription_Admin_Handler', 'get_subscription_plan_products'],
                 'permission_callback' => [__CLASS__, 'check_admin_permissions'], // Admin only
             ]
         );
@@ -215,7 +232,6 @@ class REST_API {
 
       
     }
-
     // Permission callbacks
     public static function check_logged_in_permissions() {
         return is_user_logged_in(); // Allow only logged in users

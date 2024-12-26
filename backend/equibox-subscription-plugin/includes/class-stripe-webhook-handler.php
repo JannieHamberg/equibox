@@ -47,10 +47,6 @@ class Stripe_Webhook_Handler {
                 self::handle_invoice_upcoming($event->data->object);
                 break;
 
-            case 'checkout.session.completed':
-                self::handle_checkout_completed($event->data->object);
-                break;
-
             default:
                 error_log('Unhandled event type: ' . $event->type);
         }
@@ -60,11 +56,17 @@ class Stripe_Webhook_Handler {
 
     private static function handle_payment_succeeded($invoice) {
         global $wpdb;
+
         $subscription_id = $invoice->subscription;
+        $last_payment_date = date('Y-m-d H:i:s', $invoice->status_transitions->paid_at);
 
         $wpdb->update(
             "{$wpdb->prefix}subscriptions",
-            ['status' => 'active'],
+            [
+                'status' => 'active',
+                'last_payment_date' => $last_payment_date,
+                'updated_at' => current_time('mysql'),
+            ],
             ['stripe_subscription_id' => $subscription_id]
         );
 
@@ -77,7 +79,10 @@ class Stripe_Webhook_Handler {
 
         $wpdb->update(
             "{$wpdb->prefix}subscriptions",
-            ['status' => 'payment_failed'],
+            [
+                'status' => 'payment_failed',
+                'updated_at' => current_time('mysql'),
+            ],
             ['stripe_subscription_id' => $subscription_id]
         );
 
@@ -87,14 +92,29 @@ class Stripe_Webhook_Handler {
     private static function handle_subscription_created($subscription) {
         global $wpdb;
 
+        if (!isset($subscription->id) || !isset($subscription->customer)) {
+            error_log("Invalid subscription creation payload");
+            return;
+        }
+
+        $plan_id = null;
+        if (isset($subscription->items->data[0]->price->id)) {
+            $plan_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}subscription_plans WHERE stripe_plan_id = %s",
+                $subscription->items->data[0]->price->id
+            ));
+        }
+
         $wpdb->insert(
             "{$wpdb->prefix}subscriptions",
             [
-                'stripe_customer_id' => $subscription->customer,
+                'user_id' => null, 
+                'plan_id' => $plan_id,
                 'stripe_subscription_id' => $subscription->id,
                 'status' => $subscription->status,
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
+                'payment_due_date' => date('Y-m-d H:i:s', strtotime($subscription->current_period_end)),
             ]
         );
 
@@ -104,13 +124,34 @@ class Stripe_Webhook_Handler {
     private static function handle_subscription_updated($subscription) {
         global $wpdb;
 
+        // Validate subscription
+        if (!isset($subscription->id) || !isset($subscription->status)) {
+            error_log("Invalid subscription update payload");
+            return;
+        }
+
+        // Fetch plan details if needed
+        $plan_id = null;
+        if (isset($subscription->items->data[0]->price->id)) {
+            $plan_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}subscription_plans WHERE stripe_plan_id = %s",
+                $subscription->items->data[0]->price->id
+            ));
+        }
+
+        // Update database
         $wpdb->update(
             "{$wpdb->prefix}subscriptions",
-            ['status' => $subscription->status, 'updated_at' => current_time('mysql')],
+            [
+                'status' => $subscription->status,
+                'plan_id' => $plan_id,
+                'payment_due_date' => date('Y-m-d H:i:s', strtotime($subscription->current_period_end)),
+                'updated_at' => current_time('mysql'),
+            ],
             ['stripe_subscription_id' => $subscription->id]
         );
 
-        error_log("Subscription updated: {$subscription->id}");
+        error_log("Subscription updated in database: {$subscription->id}");
     }
 
     private static function handle_subscription_deleted($subscription) {
@@ -118,7 +159,11 @@ class Stripe_Webhook_Handler {
 
         $wpdb->update(
             "{$wpdb->prefix}subscriptions",
-            ['status' => 'canceled', 'updated_at' => current_time('mysql')],
+            [
+                'status' => 'canceled',
+                'cancelled_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql'),
+            ],
             ['stripe_subscription_id' => $subscription->id]
         );
 
@@ -126,12 +171,20 @@ class Stripe_Webhook_Handler {
     }
 
     private static function handle_invoice_upcoming($invoice) {
-        error_log("Upcoming invoice for subscription ID: {$invoice->subscription}");
-        //TODO: Additional logic for upcoming invoice
-    }
+        global $wpdb;
 
-    private static function handle_checkout_completed($session) {
-        error_log("Checkout session completed: {$session->id}");
-        // TODO: Additional logic for completed checkout
+        $subscription_id = $invoice->subscription;
+        $next_payment_date = date('Y-m-d H:i:s', $invoice->next_payment_attempt);
+
+        $wpdb->update(
+            "{$wpdb->prefix}subscriptions",
+            [
+                'payment_due_date' => $next_payment_date,
+                'updated_at' => current_time('mysql'),
+            ],
+            ['stripe_subscription_id' => $subscription_id]
+        );
+
+        error_log("Upcoming invoice for subscription ID: $subscription_id. Next payment date: $next_payment_date");
     }
 }

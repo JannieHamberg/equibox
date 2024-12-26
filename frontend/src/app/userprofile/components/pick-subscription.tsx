@@ -28,7 +28,7 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
   };
 
   return (
-<div className="mt-16 max-w-screen-xl  mx-auto p-4">
+<div className="mt-16 w-full  mx-auto p-4">
   <h1 className="text-3xl font-bold mb-8 text-center">Välj en prenumerationsbox</h1>
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {availablePlans.map((plan) => (

@@ -108,25 +108,29 @@ export default function UserDashboard() {
       if (!token) {
         throw new Error("User is not logged in");
       }
-
-      const response = await fetch("/user/subscription/update", {
-        method: "PUT",
+  
+      const endpoint = subscription ? "/user/subscription/update" : "/user/subscribe";
+      const method = subscription ? "PUT" : "POST";
+  
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ plan_id: planId }),
       });
-
-      if (!response.ok) throw new Error("Failed to activate subscription");
-
-      alert("Subscription activated successfully!");
-      fetchUserSubscription(); 
+  
+      if (!response.ok) throw new Error("Failed to process subscription");
+  
+      alert("Subscription successfully updated!");
+      fetchUserSubscription();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
       console.error(err);
     }
   };
+
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -137,7 +141,7 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className={`mt-40 max-w-screen-md mx-auto p-4 bg-stone-100 ${styles.shadow} ${styles.rounded}`}>
+    <div className={`mt-40 max-w-max	 mx-auto p-4 bg-stone-100 ${styles.shadow} ${styles.rounded}`}>
       <h1 className="text-3xl font-bold pl-6 mb-6">Mitt konto</h1>
 
       {/* Render PickSubscription if no active subscription */}

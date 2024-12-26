@@ -43,27 +43,28 @@ class Subscription_Handler {
         ]);
     }
 
-     //start subscriptio
+    // Start subscription
     public static function start_user_subscription($request) {
         $user_id = get_current_user_id(); 
-        $plan_id = intval($request->get_param('plan_id')); // Plan ID from the frontend
-    
+        $plan_id = intval($request->get_param('plan_id')); 
+
         if (!$user_id || !$plan_id) {
             return new WP_Error('missing_data', 'User ID and Plan ID are required.', ['status' => 400]);
         }
-    
+
+        // Add plan to MySQL database
         global $wpdb;
         $table_name = $wpdb->prefix . 'subscriptions';
-    
+
         // Check if the plan exists in the subscription_plans table
         $plan = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id
         ));
-    
+
         if (!$plan) {
             return new WP_Error('invalid_plan', 'The selected subscription plan does not exist.', ['status' => 404]);
         }
-    
+
         // Add a new subscription
         $inserted = $wpdb->insert($table_name, [
             'user_id' => $user_id,
@@ -72,8 +73,10 @@ class Subscription_Handler {
             'description' => 'New subscription',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql'),
+            'last_payment_date' => current_time('mysql'),
+            'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')), 
         ]);
-    
+
         if ($inserted === false) {
             return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
         }
@@ -117,6 +120,7 @@ class Subscription_Handler {
             [
                 'plan_id' => $plan_id,
                 'updated_at' => current_time('mysql'),
+                'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')), 
             ],
             ['user_id' => $user_id]
         );
@@ -159,6 +163,7 @@ class Subscription_Handler {
             $table_name,
             [
                 'status' => 'canceled',
+                'cancelled_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
             ],
             ['user_id' => $user_id]
