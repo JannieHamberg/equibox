@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
       source: "/register", 
       destination: "https://backend.equibox.se/wp-json/equibox/v1/register",
     },
+    {
+      source: "/user/subscribe", 
+      destination: "https://backend.equibox.se/wp-json/equibox/v1/subscribe", 
+    },
  
     ];
   },
