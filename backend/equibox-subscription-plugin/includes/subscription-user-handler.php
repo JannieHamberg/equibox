@@ -1,4 +1,5 @@
 <?php
+
 class Subscription_Handler {
 
     // Register a new user
@@ -42,51 +43,38 @@ class Subscription_Handler {
         ]);
     }
 
-    // Subscribe a user to a plan
-    public static function subscribe_user($request) {
-        $user_id = get_current_user_id();
-        $plan_id = intval($request->get_param('plan_id'));
+    // Start subscription
+    public static function start_user_subscription($request) {
+        $user_id = get_current_user_id(); 
+        $plan_id = intval($request->get_param('plan_id')); 
 
-        // Validate inputs
         if (!$user_id || !$plan_id) {
-            return new WP_Error('missing_data', 'User ID and subscription plan ID are required.', ['status' => 400]);
-        }
-
-        if ($plan_id <= 0) {
-            return new WP_Error('invalid_plan_id', 'Plan ID must be a positive number.', ['status' => 400]);
+            return new WP_Error('missing_data', 'User ID and Plan ID are required.', ['status' => 400]);
         }
 
         global $wpdb;
         $table_name = $wpdb->prefix . 'subscriptions';
 
-        // Check if the plan exists
-        $plan_exists = $wpdb->get_var(
-            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id)
-        );
-        if (!$plan_exists) {
-            return new WP_Error('invalid_plan', 'Subscription plan does not exist.', ['status' => 400]);
+        // Check if the plan exists in the subscription_plans table
+        $plan = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id
+        ));
+
+        if (!$plan) {
+            return new WP_Error('invalid_plan', 'The selected subscription plan does not exist.', ['status' => 404]);
         }
 
-        // Check if the user already has a subscription
-        $exists = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id)
-        );
-        if ($exists) {
-            return new WP_Error('already_subscribed', 'User already has a subscription.', ['status' => 400]);
-        }
-
-        // Insert the new subscription
-        $inserted = $wpdb->insert(
-            $table_name,
-            [
-                'user_id' => $user_id,
-                'plan_id' => $plan_id,
-                'status' => 'active',
-                'description' => 'New subscription',
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql'),
-            ]
-        );
+        // Add a new subscription
+        $inserted = $wpdb->insert($table_name, [
+            'user_id' => $user_id,
+            'plan_id' => $plan_id,
+            'status' => 'active',
+            'description' => 'New subscription',
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+            'last_payment_date' => current_time('mysql'),
+            'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')), 
+        ]);
 
         if ($inserted === false) {
             return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
@@ -94,7 +82,12 @@ class Subscription_Handler {
 
         return rest_ensure_response([
             'success' => true,
-            'message' => 'Subscription created successfully!',
+            'message' => 'Subscription started successfully!',
+            'data' => [
+                'user_id' => $user_id,
+                'plan_id' => $plan_id,
+                'status' => 'active',
+            ],
         ]);
     }
 
@@ -108,10 +101,6 @@ class Subscription_Handler {
             return new WP_Error('missing_data', 'User ID and new plan ID are required.', ['status' => 400]);
         }
 
-        if ($plan_id <= 0) {
-            return new WP_Error('invalid_plan_id', 'Plan ID must be a positive number.', ['status' => 400]);
-        }
-
         global $wpdb;
         $table_name = $wpdb->prefix . 'subscriptions';
 
@@ -123,20 +112,13 @@ class Subscription_Handler {
             return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
         }
 
-        // Check if the plan exists
-        $plan_exists = $wpdb->get_var(
-            $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id)
-        );
-        if (!$plan_exists) {
-            return new WP_Error('invalid_plan', 'Subscription plan does not exist.', ['status' => 400]);
-        }
-
         // Update the subscription
         $updated = $wpdb->update(
             $table_name,
             [
                 'plan_id' => $plan_id,
                 'updated_at' => current_time('mysql'),
+                'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')), 
             ],
             ['user_id' => $user_id]
         );
@@ -179,6 +161,7 @@ class Subscription_Handler {
             $table_name,
             [
                 'status' => 'canceled',
+                'cancelled_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
             ],
             ['user_id' => $user_id]
