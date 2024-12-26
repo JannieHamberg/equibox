@@ -78,9 +78,9 @@ class Subscription_Handler {
         ]);
 
         if ($inserted === false) {
-            return new WP_Error('db_error', 'Failed to insert subscription plan into the database.', ['status' => 500]);
+            return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
         }
-
+    
         return rest_ensure_response([
             'success' => true,
             'message' => 'Subscription started successfully!',
@@ -91,6 +91,7 @@ class Subscription_Handler {
             ],
         ]);
     }
+    
 
         // Update user subscription
     public static function update_user_subscription($request) {
@@ -177,4 +178,79 @@ class Subscription_Handler {
             'message' => 'Subscription canceled successfully!',
         ]);
     }
+
+    // Fetch the user's current subscription
+    public static function get_user_subscription($request) {
+        global $wpdb;
+        $user_id = get_current_user_id();
+        
+        if (!$user_id) {
+            return new WP_Error('not_logged_in', 'You must be logged in to view subscriptions.', ['status' => 401]);
+        }
+        
+        // Join wpct_subscriptions and wpct_subscription_plans tables
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT 
+                s.id, 
+                s.user_id, 
+                s.plan_id, 
+                s.status, 
+                s.description, 
+                s.created_at, 
+                s.updated_at, 
+                p.name, 
+                p.price, 
+                p.interval
+             FROM {$wpdb->prefix}subscriptions s
+             JOIN {$wpdb->prefix}subscription_plans p ON s.plan_id = p.id
+             WHERE s.user_id = %d",
+            $user_id
+        ), ARRAY_A);
+        
+        if (empty($results)) {
+            return new WP_Error('no_subscription', 'No subscriptions found for the user.', ['status' => 404]);
+        }
+        
+        return rest_ensure_response([
+            'success' => true,
+            'data' => $results,
+        ]);
+    }        
+    
+
+    
+
+    // Get all subscription plans (public)
+    public static function get_all_subscription_plans($request) {
+        global $wpdb;
+    
+        // Ensure table name is prefixed properly
+        $table_name = $wpdb->prefix . 'subscription_plans';
+        error_log("Fetching data from table: " . $table_name);
+    
+        // Safe SQL query with backticks
+        $query = "SELECT `id`, `name`, `price`, `interval`, `description`, `image_url` FROM `$table_name`";
+        $plans = $wpdb->get_results($query, ARRAY_A);
+    
+        // Check for errors
+        if ($wpdb->last_error) {
+            error_log("Database Error: " . $wpdb->last_error);
+            return new WP_Error('db_error', 'Failed to fetch subscription plans.', ['status' => 500]);
+        }
+    
+        // Check if plans are empty
+        if (empty($plans)) {
+            return new WP_Error('no_plans', 'No subscription plans found.', ['status' => 404]);
+        }
+
+        // Log fetched plans
+        error_log('Fetched Plans: ' . print_r($plans, true));
+    
+        return rest_ensure_response([
+            'success' => true,
+            'data' => $plans,
+        ]);
+    }
+    
+
 }

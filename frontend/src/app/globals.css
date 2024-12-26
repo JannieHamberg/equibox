@@ -2,20 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* globals.css or styles.css */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-white: #fff;
+  /* Primary beige/gold colors */
+  --color-gold-dark: #AC9055;
+  --color-gold-light: #E1C582;
+  --color-gold: #D2A047;
+
+  /* Primary blues */
+  --color-navy-medium: #161F48;
+  --color-navy-dark: #0c111f;
+  --color-navy-light: #284574;
+
+  /* Text colors */
+  --color-dark-grey: #252525;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Usage */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-white);
+  color: var(--color-dark-grey);
+}
+
+
+h1, h2, h3 {
+  color: var(--color-gold-light);
+}
+
+.btn, .cta-btn {
+  background-color: var(--color-gold);
+  color: #fff;
+  transition: all 0.3s ease; 
+  border-radius: 0;
+}
+
+.btn:hover, .cta-btn:hover {
+  background-color: var(--color-dark-grey); 
+  transform: scale(1.05); 
 }

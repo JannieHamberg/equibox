@@ -130,7 +130,7 @@ export default function UserDashboard() {
       console.error(err);
     }
   };
-  
+
 
   if (error) {
     return <div>Error: {error}</div>;
