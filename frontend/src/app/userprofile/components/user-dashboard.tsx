@@ -40,6 +40,7 @@ export default function UserDashboard() {
   const fetchUserSubscription = async () => {
     try {
       const token = localStorage.getItem("authToken");
+      console.log("Auth Token:", token)
       if (!token) {
         throw new Error("Användaren är inte inloggad.");
       }
@@ -51,6 +52,9 @@ export default function UserDashboard() {
           "Content-Type": "application/json",
         },
       });
+
+      console.log("Response Status:", response.status); 
+      console.log("Response Body:", await response.text()); 
   
       if (response.status === 404) {
         console.log("Ingen prenumeration hittades på användaren."); 
@@ -92,7 +96,7 @@ export default function UserDashboard() {
       // Map over the data to ensure image_url exists
       const plansWithImage = data.data.map((plan: Plan) => ({
         ...plan,
-        image_url: plan.image_url || "default_image_url_here", /* TODO: add default iamge url */
+        image_url: plan.image_url || "/boxar/fallback-image.webp", 
       }));
   
       setAvailablePlans(plansWithImage);
@@ -112,6 +116,7 @@ export default function UserDashboard() {
       const endpoint = subscription ? "/user/subscription/update" : "/user/subscribe";
       const method = subscription ? "PUT" : "POST";
   
+      console.log("Payload being sent:", JSON.stringify({ plan_id: planId }));
       const response = await fetch(endpoint, {
         method,
         headers: {

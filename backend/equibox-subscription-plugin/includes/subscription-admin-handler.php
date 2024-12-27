@@ -66,9 +66,10 @@ class Subscription_Admin_Handler {
         $interval = sanitize_text_field($request->get_param('interval'));
         $description = sanitize_textarea_field($request->get_param('description'));
         $image_url = esc_url_raw($request->get_param('image_url'));
+        $stripe_plan_id = sanitize_text_field($request->get_param('stripe_plan_id'));
         $product_ids = $request->get_param('product_ids'); 
 
-        if (!$plan_name || !$interval) {
+        if (!$plan_name || !$interval || !$stripe_plan_id) {
             return new WP_Error('missing_data', 'Name and interval are required.', ['status' => 400]);
         }
 
@@ -95,6 +96,7 @@ class Subscription_Admin_Handler {
                 'interval' => $interval,
                 'description' => $description,
                 'image_url' => $image_url,
+                'stripe_plan_id' => $stripe_plan_id,
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
             ]
@@ -173,10 +175,11 @@ class Subscription_Admin_Handler {
         $interval = sanitize_text_field($request->get_param('interval'));
         $description = sanitize_textarea_field($request->get_param('description'));
         $image_url = esc_url_raw($request->get_param('image_url'));
+        $stripe_plan_id = sanitize_text_field($request->get_param('stripe_plan_id')); 
         $product_ids = $request->get_param('product_ids'); 
 
-        if (!$plan_id || !$plan_name || !$interval) {
-            return new WP_Error('missing_data', 'ID, name, and interval are required.', ['status' => 400]);
+        if (!$plan_id || !$plan_name || !$interval || !$stripe_plan_id) {
+            return new WP_Error('missing_data', 'ID, name, interval and stripe_plan_id are required.', ['status' => 400]);
         }
 
         // Calculate combined product price
@@ -202,6 +205,7 @@ class Subscription_Admin_Handler {
                 'interval' => $interval,
                 'description' => $description,
                 'image_url' => $image_url,
+                'stripe_plan_id' => $stripe_plan_id,
                 'updated_at' => current_time('mysql'),
             ],
             ['id' => $plan_id]

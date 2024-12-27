@@ -1,24 +1,48 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    exit; 
+}
+
 class Stripe_Webhook_Handler {
 
-    public static function handle_webhook($request) {
-        $webhook_secret = defined('STRIPE_WEBHOOK_SECRET') ? STRIPE_WEBHOOK_SECRET : '';
-
-        if (empty($webhook_secret)) {
-            return new WP_Error('missing_webhook_secret', 'Stripe webhook secret is not defined.', ['status' => 500]);
+    // Verify the Stripe webhook signature
+    private static function verify_stripe_webhook_signature() {
+        $endpoint_secret = defined('STRIPE_WEBHOOK_SECRET') ? STRIPE_WEBHOOK_SECRET : null;
+        if (!$endpoint_secret) {
+            throw new Exception('Stripe webhook secret is not defined.');
         }
 
+        $stripe_signature = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
         $payload = @file_get_contents('php://input');
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+
+        if (empty($stripe_signature)) {
+            error_log('Missing Stripe signature.');
+            return false;
+        }
 
         try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload, $sig_header, $webhook_secret
-            );
+            \Stripe\Webhook::constructEvent($payload, $stripe_signature, $endpoint_secret);
+            return true;
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            error_log('Webhook signature verification failed: ' . $e->getMessage());
-            return new WP_Error('invalid_signature', 'Invalid webhook signature.', ['status' => 400]);
+            error_log('Stripe signature verification failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public static function handle_webhook($request) {
+        // Verify Stripe webhook signature before proceeding
+        if (!self::verify_stripe_webhook_signature()) {
+            return new WP_Error('invalid_signature', 'Stripe signature verification failed', ['status' => 401]);
+        }
+
+        // Retrieve the payload
+        $payload = @file_get_contents('php://input');
+        $event = json_decode($payload);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('Invalid JSON payload received.');
+            return new WP_Error('invalid_payload', 'Invalid JSON payload received.', ['status' => 400]);
         }
 
         // Handle events
@@ -108,7 +132,7 @@ class Stripe_Webhook_Handler {
         $wpdb->insert(
             "{$wpdb->prefix}subscriptions",
             [
-                'user_id' => null, 
+                'user_id' => null,
                 'plan_id' => $plan_id,
                 'stripe_subscription_id' => $subscription->id,
                 'status' => $subscription->status,
@@ -124,13 +148,6 @@ class Stripe_Webhook_Handler {
     private static function handle_subscription_updated($subscription) {
         global $wpdb;
 
-        // Validate subscription
-        if (!isset($subscription->id) || !isset($subscription->status)) {
-            error_log("Invalid subscription update payload");
-            return;
-        }
-
-        // Fetch plan details if needed
         $plan_id = null;
         if (isset($subscription->items->data[0]->price->id)) {
             $plan_id = $wpdb->get_var($wpdb->prepare(
@@ -139,7 +156,6 @@ class Stripe_Webhook_Handler {
             ));
         }
 
-        // Update database
         $wpdb->update(
             "{$wpdb->prefix}subscriptions",
             [
