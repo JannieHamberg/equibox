@@ -100,11 +100,11 @@ class Woo_Integration {
         global $wpdb;
 
         // Fetch plan details
-        $plan = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", $plan_id));
-        if (!$plan) {
-            error_log("Plan not found for ID: $plan_id");
-            return false;
-        }
+        $plan = $wpdb->get_row($wpdb->prepare(
+            "SELECT stripe_plan_id, name, price FROM {$wpdb->prefix}subscription_plans WHERE id = %d",
+            $plan_id
+        ));
+        
 
         // Fetch existing subscription
         $subscription = $wpdb->get_row($wpdb->prepare(
