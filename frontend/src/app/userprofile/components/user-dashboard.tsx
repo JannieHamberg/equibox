@@ -2,7 +2,7 @@
 import styles from "../userprofile.module.css";
 import { useEffect, useState } from "react";
 import LogoutButton from "./logout-btn";
-import PickSubscription from "./pick-subscription"; // Import the PickSubscription component
+import PickSubscription from "./pick-subscription"; 
 
 interface Subscription {
   id: number;

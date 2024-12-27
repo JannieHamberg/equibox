@@ -229,7 +229,7 @@ class Subscription_Handler {
         error_log("Fetching data from table: " . $table_name);
     
         // Safe SQL query with backticks
-        $query = "SELECT `id`, `name`, `price`, `interval`, `description`, `image_url` FROM `$table_name`";
+        $query = "SELECT `id`, `name`, `price`, `interval`, `description`, `image_url`, `product_id` FROM `$table_name`";
         $plans = $wpdb->get_results($query, ARRAY_A);
     
         // Check for errors

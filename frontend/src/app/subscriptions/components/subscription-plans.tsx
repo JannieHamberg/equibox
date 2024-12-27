@@ -11,6 +11,7 @@ interface Prenumerationer {
   interval: string;
   description: string;
   image_url: string;
+  product_id: number;
 }
 
 export default function SubscriptionPlans() {
@@ -57,7 +58,7 @@ export default function SubscriptionPlans() {
         className={`card bg-base-100 shadow-xl ${styles.cardNoRadius} ${styles.cardCustom}`}>
         <figure>
           <Image
-            src={plan.image_url}
+            src={plan.image_url || '/boxar/fallback-image.webp'}
             alt={plan.name}
             width={300}
             height={200}
