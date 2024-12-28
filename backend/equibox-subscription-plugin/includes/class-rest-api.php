@@ -7,6 +7,7 @@ if (!defined('ARRAY_A')) {
 class REST_API {
     public static function init() {
         add_action('rest_api_init', [__CLASS__, 'register_routes']);
+        error_log('REST API Initialized');
     }
 
     public static function register_routes() {
@@ -39,7 +40,7 @@ class REST_API {
             '/subscribe',
             [
                 'methods' => 'POST',
-                'callback' => ['Subscription_Handler', 'subscribe_user'],
+                'callback' => ['Subscription_Handler', 'start_user_subscription'],
                 'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
             ]
         );

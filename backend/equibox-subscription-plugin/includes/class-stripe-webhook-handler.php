@@ -31,6 +31,8 @@ class Stripe_Webhook_Handler {
     }
 
     public static function handle_webhook($request) {
+
+        error_log('Stripe webhook handler triggered');
         // Verify Stripe webhook signature before proceeding
         if (!self::verify_stripe_webhook_signature()) {
             return new WP_Error('invalid_signature', 'Stripe signature verification failed', ['status' => 401]);
@@ -80,11 +82,11 @@ class Stripe_Webhook_Handler {
 
     private static function handle_payment_succeeded($invoice) {
         global $wpdb;
-
+    
         $subscription_id = $invoice->subscription;
-        $last_payment_date = date('Y-m-d H:i:s', $invoice->status_transitions->paid_at);
-
-        $wpdb->update(
+        $last_payment_date = date('Y-m-d H:i:s', strtotime($invoice->status_transitions->paid_at));
+    
+        $updated = $wpdb->update(
             "{$wpdb->prefix}subscriptions",
             [
                 'status' => 'active',
@@ -93,15 +95,21 @@ class Stripe_Webhook_Handler {
             ],
             ['stripe_subscription_id' => $subscription_id]
         );
-
-        error_log("Payment succeeded for subscription ID: $subscription_id");
+    
+        if ($updated === false) {
+            error_log('Failed to update subscription after payment success: ' . $wpdb->last_error);
+        } else {
+            error_log("Payment succeeded for subscription ID: $subscription_id");
+        }
     }
+    
 
     private static function handle_payment_failed($invoice) {
         global $wpdb;
+    
         $subscription_id = $invoice->subscription;
-
-        $wpdb->update(
+    
+        $updated = $wpdb->update(
             "{$wpdb->prefix}subscriptions",
             [
                 'status' => 'payment_failed',
@@ -109,11 +117,18 @@ class Stripe_Webhook_Handler {
             ],
             ['stripe_subscription_id' => $subscription_id]
         );
-
-        error_log("Payment failed for subscription ID: $subscription_id");
+    
+        if ($updated === false) {
+            error_log('Failed to update subscription after payment failure: ' . $wpdb->last_error);
+        } else {
+            error_log("Payment failed for subscription ID: $subscription_id");
+        }
     }
+    
 
     private static function handle_subscription_created($subscription) {
+        error_log('Subscription created event received');
+        error_log(print_r($subscription, true));
         global $wpdb;
 
         if (!isset($subscription->id) || !isset($subscription->customer)) {
@@ -127,6 +142,7 @@ class Stripe_Webhook_Handler {
                 "SELECT id FROM {$wpdb->prefix}subscription_plans WHERE stripe_plan_id = %s",
                 $subscription->items->data[0]->price->id
             ));
+            error_log('Plan ID fetched: ' . $plan_id);
         }
 
         $wpdb->insert(
@@ -143,64 +159,75 @@ class Stripe_Webhook_Handler {
         );
 
         error_log("Subscription created: {$subscription->id}");
+
     }
 
     private static function handle_subscription_updated($subscription) {
         global $wpdb;
-
+    
+        error_log('Handling subscription updated event');
+        error_log(print_r($subscription, true));
+    
+        if (empty($subscription->id)) {
+            error_log('Subscription updated event missing subscription ID.');
+            return;
+        }
+    
         $plan_id = null;
-        if (isset($subscription->items->data[0]->price->id)) {
+        if (!empty($subscription->items->data[0]->price->id)) {
             $plan_id = $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM {$wpdb->prefix}subscription_plans WHERE stripe_plan_id = %s",
                 $subscription->items->data[0]->price->id
             ));
         }
-
-        $wpdb->update(
+    
+        $updated = $wpdb->update(
             "{$wpdb->prefix}subscriptions",
             [
                 'status' => $subscription->status,
                 'plan_id' => $plan_id,
-                'payment_due_date' => date('Y-m-d H:i:s', strtotime($subscription->current_period_end)),
+                'payment_due_date' => date('Y-m-d H:i:s', $subscription->current_period_end),
                 'updated_at' => current_time('mysql'),
             ],
             ['stripe_subscription_id' => $subscription->id]
         );
-
-        error_log("Subscription updated in database: {$subscription->id}");
+    
+        if ($updated === false) {
+            error_log('Failed to update subscription in database: ' . $wpdb->last_error);
+        } else {
+            error_log("Subscription successfully updated: {$subscription->id}");
+        }
     }
-
+    
     private static function handle_subscription_deleted($subscription) {
         global $wpdb;
-
-        $wpdb->update(
+    
+        error_log('Handling subscription deleted event');
+        error_log(print_r($subscription, true));
+    
+        if (empty($subscription->id)) {
+            error_log('Subscription deleted event missing subscription ID.');
+            return;
+        }
+    
+        $cancellation_type = $subscription->cancel_at_period_end ? 'end_of_period' : 'immediate';
+    
+        $updated = $wpdb->update(
             "{$wpdb->prefix}subscriptions",
             [
                 'status' => 'canceled',
-                'cancelled_at' => current_time('mysql'),
+                'canceled_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql'),
+                'cancel_type' => $cancellation_type, 
             ],
             ['stripe_subscription_id' => $subscription->id]
         );
-
-        error_log("Subscription deleted: {$subscription->id}");
+    
+        if ($updated === false) {
+            error_log('Failed to update subscription in database after cancellation: ' . $wpdb->last_error);
+        } else {
+            error_log("Subscription successfully marked as canceled: {$subscription->id}");
+        }
     }
-
-    private static function handle_invoice_upcoming($invoice) {
-        global $wpdb;
-
-        $subscription_id = $invoice->subscription;
-        $next_payment_date = date('Y-m-d H:i:s', $invoice->next_payment_attempt);
-
-        $wpdb->update(
-            "{$wpdb->prefix}subscriptions",
-            [
-                'payment_due_date' => $next_payment_date,
-                'updated_at' => current_time('mysql'),
-            ],
-            ['stripe_subscription_id' => $subscription_id]
-        );
-
-        error_log("Upcoming invoice for subscription ID: $subscription_id. Next payment date: $next_payment_date");
-    }
+    
 }
