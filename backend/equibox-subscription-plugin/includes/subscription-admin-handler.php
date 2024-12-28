@@ -73,8 +73,18 @@ class Subscription_Admin_Handler {
             return new WP_Error('missing_data', 'Name and interval are required.', ['status' => 400]);
         }
 
+        // Stripe Plan Validation
+        try {
+            $stripe_plan = \Stripe\Price::retrieve($stripe_plan_id);
+            if (!$stripe_plan || $stripe_plan->active === false) {
+                return new WP_Error('invalid_stripe_plan', 'Invalid or inactive Stripe plan.', ['status' => 400]);
+            }
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return new WP_Error('stripe_error', 'Stripe API error: ' . $e->getMessage(), ['status' => 500]);
+        }
+
         // Calculate combined product price
-        $calculated_price = 0;
+       /*  $calculated_price = 0;
         global $wpdb;
         if (is_array($product_ids) && !empty($product_ids)) {
             foreach ($product_ids as $product_id) {
@@ -84,8 +94,9 @@ class Subscription_Admin_Handler {
                 ));
                 $calculated_price += floatval($product_price);
             }
-        }
-
+        } */
+        $calculated_price = self::calculate_combined_price($product_ids);
+        global $wpdb;
         $final_price = $plan_price > 0 ? $plan_price : $calculated_price;
 
         $inserted = $wpdb->insert(
@@ -182,8 +193,19 @@ class Subscription_Admin_Handler {
             return new WP_Error('missing_data', 'ID, name, interval and stripe_plan_id are required.', ['status' => 400]);
         }
 
+        // Validate Stripe Plan
+        try {
+            $stripe_plan = \Stripe\Price::retrieve($stripe_plan_id);
+            if (!$stripe_plan || $stripe_plan->active === false) {
+                return new WP_Error('invalid_stripe_plan', 'Invalid or inactive Stripe plan.', ['status' => 400]);
+            }
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return new WP_Error('stripe_error', 'Stripe API error: ' . $e->getMessage(), ['status' => 500]);
+        }
+
+
         // Calculate combined product price
-        $calculated_price = 0;
+       /*  $calculated_price = 0;
         global $wpdb;
         if (is_array($product_ids) && !empty($product_ids)) {
             foreach ($product_ids as $product_id) {
@@ -193,8 +215,9 @@ class Subscription_Admin_Handler {
                 ));
                 $calculated_price += floatval($product_price);
             }
-        }
-
+        } */
+        $calculated_price = self::calculate_combined_price($product_ids);
+        global $wpdb;
         $final_price = $plan_price > 0 ? $plan_price : $calculated_price;
 
         $updated = $wpdb->update(
@@ -287,6 +310,22 @@ class Subscription_Admin_Handler {
 
         // Delete associated products
         global $wpdb;
+        // Archive the Stripe plan
+        try {
+            $stripe_plan_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT stripe_plan_id FROM {$wpdb->prefix}subscription_plans WHERE id = %d",
+                $plan_id
+            ));
+    
+            if ($stripe_plan_id) {
+                \Stripe\Price::update($stripe_plan_id, ['active' => false]);
+                error_log("Stripe plan archived: $stripe_plan_id");
+            }
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            error_log('Stripe API error when archiving the plan: ' . $e->getMessage());
+            
+        }
+
         $wpdb->delete("{$wpdb->prefix}box_products", ['plan_id' => $plan_id]);
 
         // Delete the subscription plan

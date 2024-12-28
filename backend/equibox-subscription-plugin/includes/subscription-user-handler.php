@@ -43,70 +43,85 @@ class Subscription_Handler {
         ]);
     }
 
-    // Start subscription
     public static function start_user_subscription($request) {
         error_log('Received request to start subscription');
         error_log(print_r($request->get_json_params(), true));
+    
         $user_id = get_current_user_id(); 
         $plan_id = intval($request->get_param('plan_id')); 
-
+        $payment_method_id = sanitize_text_field($request->get_param('payment_method_id'));
+    
         error_log("Received user_id: " . $user_id);
         error_log("Received plan_id: " . $plan_id);
-
-        if (!$user_id || !$plan_id) {
-            error_log('Missing user_id or plan_id');
-            return new WP_Error('missing_data', 'User ID and Plan ID are required.', ['status' => 400]);
+        error_log("Received payment_method_id: " . $payment_method_id);
+    
+        if (!$user_id || !$plan_id || !$payment_method_id) {
+            error_log('Missing user_id, plan_id, or payment method ID');
+            return new WP_Error('missing_data', 'User ID, Plan ID, and Payment Method ID are required.', ['status' => 400]);
         }
-
+    
         // Add plan to MySQL database
         global $wpdb;
         $table_name = $wpdb->prefix . 'subscriptions';
-
+    
         // Check if the plan exists in the subscription_plans table
         $plan = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", 
             $plan_id
         ));
-
+    
+        error_log('Database Query: ' . $wpdb->last_query);
+        error_log('Query Result (Full Object): ' . print_r($plan, true));
+    
         if (!$plan) {
+            error_log('Plan not found in subscription_plans table for ID: ' . $plan_id);
             return new WP_Error('invalid_plan', 'The selected subscription plan does not exist.', ['status' => 404]);
         }
     
-        if (empty($plan->stripe_plan_id)) {
+        // Fetch stripe_plan_id
+        $stripe_plan_id = $plan->stripe_plan_id ?? '';
+        error_log('Fetched Stripe plan ID: ' . $stripe_plan_id);
+    
+        if (empty($stripe_plan_id)) {
+            error_log('Missing stripe_plan_id for Plan ID: ' . $plan_id);
             return new WP_Error('missing_stripe_plan_id', 'Stripe plan ID is missing for the selected plan.', ['status' => 500]);
         }
-
-       // Call Stripe Integration to create a subscription
+    
+        // Call Stripe Integration to create a subscription
         try {
             $stripe_subscription = Stripe_Integration::create_stripe_subscription(
                 wp_get_current_user()->user_email,
                 wp_get_current_user()->display_name,
                 $plan_id,
-                $plan->stripe_plan_id
+                $stripe_plan_id,
+                $payment_method_id
             );
+            error_log('Stripe Subscription Object: ' . print_r($stripe_subscription, true));
         } catch (Exception $e) {
+            error_log('Stripe Error: ' . $e->getMessage());
             return new WP_Error('stripe_error', $e->getMessage(), ['status' => 500]);
         }
-
+    
         // Add subscription to the database
-        $table_name = $wpdb->prefix . 'subscriptions';
+        error_log('Preparing to insert subscription into database.');
         $inserted = $wpdb->insert($table_name, [
             'user_id' => $user_id,
             'plan_id' => $plan_id,
             'status' => 'active',
-            'stripe_subscription_id' => $stripe_subscription->id, // Save the Stripe subscription ID
+            'stripe_subscription_id' => $stripe_subscription->id,
             'description' => 'New subscription',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql'),
             'last_payment_date' => current_time('mysql'),
-            'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')), 
+            'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')),
         ]);
-
-
+    
         if ($inserted === false) {
             error_log('Database insertion failed: ' . $wpdb->last_error);
+            error_log('Failed SQL Query: ' . $wpdb->last_query);
             return new WP_Error('db_error', 'Failed to create subscription.', ['status' => 500]);
         }
+    
         error_log('Subscription successfully created');
         return rest_ensure_response([
             'success' => true,
@@ -119,6 +134,7 @@ class Subscription_Handler {
         ]);
     }
     
+
 
     public static function update_user_subscription($request) {
         global $wpdb;
@@ -139,13 +155,23 @@ class Subscription_Handler {
             return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
         }
     
-        // Fetch the new plan and its stripe_plan_id
+        // Fetch the new plan and validate its Stripe ID
         $plan = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", 
             $plan_id
         ));
         if (!$plan || empty($plan->stripe_plan_id)) {
             return new WP_Error('invalid_plan', 'The selected subscription plan does not exist or is missing a Stripe plan ID.', ['status' => 404]);
+        }
+    
+        try {
+            $stripe_plan = \Stripe\Price::retrieve($plan->stripe_plan_id);
+            if (!$stripe_plan || !$stripe_plan->active) {
+                return new WP_Error('invalid_stripe_plan', 'The selected Stripe plan is invalid or inactive.', ['status' => 400]);
+            }
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            error_log('Stripe API error during update: ' . $e->getMessage());
+            return new WP_Error('stripe_error', 'Failed to validate Stripe plan: ' . $e->getMessage(), ['status' => 500]);
         }
     
         // Update the subscription in Stripe
@@ -176,32 +202,40 @@ class Subscription_Handler {
         ]);
     }
     
+    
 
     // Cancel user subscription
     public static function cancel_user_subscription($request) {
         $user_id = get_current_user_id();
-
+    
         if (!$user_id) {
             return new WP_Error('not_logged_in', 'You must be logged in to cancel subscriptions.', ['status' => 401]);
         }
-
+    
         global $wpdb;
         $table_name = $wpdb->prefix . 'subscriptions';
-
+    
         // Check if subscription exists
         $subscription = $wpdb->get_row(
             $wpdb->prepare("SELECT * FROM $table_name WHERE user_id = %d", $user_id)
         );
         if (!$subscription) {
-            
             return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
         }
-
+    
         if ($subscription->status === 'canceled') {
             return new WP_Error('already_canceled', 'This subscription is already canceled.', ['status' => 400]);
         }
-
-        // Mark subscription as canceled
+    
+        // Cancel the subscription in Stripe
+        try {
+            Stripe_Integration::cancel_stripe_subscription($subscription->stripe_subscription_id);
+        } catch (Exception $e) {
+            error_log('Stripe cancellation error: ' . $e->getMessage());
+            return new WP_Error('stripe_error', 'Failed to cancel subscription in Stripe.', ['status' => 500]);
+        }
+    
+        // Mark subscription as canceled in the database
         $canceled = $wpdb->update(
             $table_name,
             [
@@ -211,16 +245,17 @@ class Subscription_Handler {
             ],
             ['user_id' => $user_id]
         );
-
+    
         if ($canceled === false) {
             return new WP_Error('cancel_failed', 'Failed to cancel subscription.', ['status' => 500]);
         }
-
+    
         return rest_ensure_response([
             'success' => true,
             'message' => 'Subscription canceled successfully!',
         ]);
     }
+    
 
     // Fetch the user's current subscription
     public static function get_user_subscription($request) {
