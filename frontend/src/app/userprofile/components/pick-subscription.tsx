@@ -22,6 +22,7 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
   const handleActivate = async () => {
     if (selectedPlanId) {
       try {
+        onSelectPlan(selectedPlanId);
         // Redirect to WooCommerce with the selected plan ID
         const response = await fetch(`/woocommerce/add-to-cart`, {
           method: "POST",
