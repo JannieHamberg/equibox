@@ -19,9 +19,27 @@ interface PickSubscriptionProps {
 export default function PickSubscription({ availablePlans, onSelectPlan }: PickSubscriptionProps) {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
 
-  const handleActivate = () => {
+  const handleActivate = async () => {
     if (selectedPlanId) {
-      onSelectPlan(selectedPlanId);
+      try {
+        onSelectPlan(selectedPlanId);
+        // Redirect to WooCommerce with the selected plan ID
+        const response = await fetch(`/woocommerce/add-to-cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ planId: selectedPlanId }),
+        });
+  
+        if (!response.ok) throw new Error("Failed to add plan to WooCommerce cart.");
+  
+        // Redirect to checkout
+        window.location.href = "/checkout";
+      } catch (error) {
+        console.error(error);
+        alert("An error occurred while processing your subscription.");
+      }
     } else {
       alert("Välj en prenumerationsbox.");
     }
