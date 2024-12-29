@@ -54,7 +54,6 @@ export default function UserDashboard() {
       });
 
       console.log("Response Status:", response.status); 
-      console.log("Response Body:", await response.text()); 
   
       if (response.status === 404) {
         console.log("Ingen prenumeration hittades på användaren."); 
@@ -63,8 +62,7 @@ export default function UserDashboard() {
       }
   
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
+       
         throw new Error("Misslyckades att hämta användarens prenumeration.");
       }
   

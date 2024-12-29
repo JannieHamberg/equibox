@@ -295,9 +295,6 @@ class Subscription_Handler {
             'data' => $results,
         ]);
     }        
-    
-
-    
 
     // Get all subscription plans (public)
     public static function get_all_subscription_plans($request) {

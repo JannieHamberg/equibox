@@ -34,7 +34,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/admin-dashboard.php';
 
 // Enqueue styles and scripts for the admin dashboard
 add_action('admin_enqueue_scripts', function ($hook) {
-    error_log('Current hook: ' . $hook);
+    /* error_log('Current hook: ' . $hook); */
 
     // Load scripts only on the admin dashboard page
     if ($hook !== 'toplevel_page_admin-dashboard') {

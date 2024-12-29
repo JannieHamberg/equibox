@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
       source: "/user/subscribe", 
       destination: "https://backend.equibox.se/wp-json/equibox/v1/subscribe", 
     },
+    {
+      source: "/woocommerce/add-to-cart",
+      destination: "https://backend.equibox.se/wp-json/wc/v3/cart/add",
+    },
+    
  
     ];
   },
