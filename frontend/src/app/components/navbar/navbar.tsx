@@ -17,25 +17,21 @@ export default function CustomNavbar() {
   useEffect(() => {
     const fetchCartData = async () => {
       try {
-        const url = "/cart"; 
-        console.log("Fetching cart data from URL:", url);
-
-        const nonceResponse = await fetch("/api/get_nonce"); 
-        if (!nonceResponse.ok) {
-          console.error("Failed to fetch nonce:", nonceResponse.statusText);
-          return;
-        }
-        const { nonce } = await nonceResponse.json();
-
-        // Fetch cart data
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "X-WP-Nonce": nonce, 
-            "Content-Type": "application/json",
-          },
-          credentials: "include", 
-        });
+          const nonceResponse = await fetch("/api/get_nonce");
+          if (!nonceResponse.ok) {
+              console.error("Failed to fetch nonce:", nonceResponse.statusText);
+              return;
+          }
+          const { wc_store_api_nonce } = await nonceResponse.json();
+  
+          const response = await fetch("/cart", {
+              method: "GET",
+              headers: {
+                  "X-WC-Store-API-Nonce": wc_store_api_nonce,
+                  "Content-Type": "application/json",
+              },
+              credentials: "include",
+          });
 
         console.log("Response status:", response.status);
 
