@@ -12,6 +12,18 @@ class REST_API {
 
     public static function register_routes() {
 
+            // Endpoint to fetch nonce
+            register_rest_route(
+                'equibox/v1',
+                '/get_nonce',
+                [
+                    'methods' => 'GET',
+                    'callback' => [__CLASS__, 'get_nonce'], 
+                    'permission_callback' => '__return_true',
+                ]
+            );
+
+
         // Public endpoint to get all subscription plans
         register_rest_route(
             'equibox/v1',
@@ -19,9 +31,20 @@ class REST_API {
             [
                 'methods' => 'GET',
                 'callback' => ['Subscription_Handler', 'get_all_subscription_plans'],
-                'permission_callback' => '__return_true', // Allow anyone to access
+                'permission_callback' => '__return_true', // Public access
             ]
         );
+
+        register_rest_route(
+            'equibox/v1',
+            '/add-to-cart',
+            [
+                'methods' => 'POST',
+                'callback' => ['Woo_Integration', 'add_subscription_to_cart'],
+                'permission_callback' => '__return_true', // Public access
+            ]
+        );
+        
 
         // User registration route
         register_rest_route(
@@ -30,7 +53,7 @@ class REST_API {
             [
                 'methods' => 'POST',
                 'callback' => ['Subscription_Handler', 'register_user'],
-                'permission_callback' => '__return_true', 
+                'permission_callback' => '__return_true', //Public access
             ]
         );
 
@@ -94,7 +117,7 @@ class REST_API {
             [
                 'methods' => 'GET',
                 'callback' => ['Product_Handler', 'get_all_products'],
-                'permission_callback' => '__return_true', // Allow anyone to view
+                'permission_callback' => '__return_true', //Public access
             ]
         );
 
@@ -121,7 +144,7 @@ class REST_API {
         register_rest_route('equibox/v1', '/categories', [
             'methods' => 'GET',
             'callback' => ['Product_Handler', 'get_all_categories'],
-            'permission_callback' => '__return_true', // Allow anyone to access
+            'permission_callback' => '__return_true', //Public access
         ]);
         
 
@@ -131,7 +154,7 @@ class REST_API {
             [
                 'methods' => 'GET',
                 'callback' => ['Box_Handler', 'get_box_products'],
-                'permission_callback' => '__return_true', // Allow anyone to view
+                'permission_callback' => '__return_true', //Public access
             ]
         );
 
@@ -161,7 +184,7 @@ class REST_API {
             [
                 'methods' => 'POST',
                 'callback' => ['Stripe_Webhook_Handler', 'handle_webhook'],
-                'permission_callback' => '__return_true',
+                'permission_callback' => '__return_true', //Public access
             ]
         );
 
@@ -230,7 +253,6 @@ class REST_API {
                 return true;
             },
         ]);
-
       
     }
     // Permission callbacks
@@ -245,11 +267,12 @@ class REST_API {
         return true;
     }
     
-
-    
-
-
-    
+    // Generate and return a nonce for frontend API requests
+    public static function get_nonce() {
+        return rest_ensure_response([
+            'nonce' => wp_create_nonce('wp_rest'),
+        ]);
+    }
     
     
 }

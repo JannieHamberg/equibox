@@ -44,6 +44,14 @@ const nextConfig: NextConfig = {
       source: "/woocommerce/add-to-cart",
       destination: "https://backend.equibox.se/wp-json/wc/v3/cart/add",
     },
+    {
+      source: '/cart',
+      destination: 'https://backend.equibox.se/cart',
+    },
+    {
+      source: "/api/get_nonce",
+      destination: "https://backend.equibox.se/wp-json/equibox/v1/get_nonce", 
+    },
     
  
     ];
