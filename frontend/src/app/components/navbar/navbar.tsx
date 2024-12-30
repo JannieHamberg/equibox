@@ -11,7 +11,58 @@ import UserIcon from "./user-profile-icon";
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
 
+  // Fetch WooCommerce cart data
+  useEffect(() => {
+    const fetchCartData = async () => {
+      try {
+        const url = "/cart"; 
+        console.log("Fetching cart data from URL:", url);
+
+        const nonceResponse = await fetch("/api/get_nonce"); 
+        if (!nonceResponse.ok) {
+          console.error("Failed to fetch nonce:", nonceResponse.statusText);
+          return;
+        }
+        const { nonce } = await nonceResponse.json();
+
+        // Fetch cart data
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "X-WP-Nonce": nonce, 
+            "Content-Type": "application/json",
+          },
+          credentials: "include", 
+        });
+
+        console.log("Response status:", response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Cart data:", data);
+          setCartCount(data.items_count || 0); // Update cart item count
+        } else {
+          console.error("Failed to fetch cart data:", response.statusText);
+          setCartCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching cart data:", error);
+        setCartCount(0);
+      }
+    };
+
+    fetchCartData();
+
+    // Event listener for cart updates
+    const handleCartUpdate = () => fetchCartData();
+    window.addEventListener("cart-updated", handleCartUpdate);
+
+    // Cleanup
+    return () => window.removeEventListener("cart-updated", handleCartUpdate);
+  }, []);
+  
   // Slideshow text for the top bar
   const topBarTexts = [
     "Minishoppen - kommer snart!",
@@ -34,7 +85,7 @@ export default function CustomNavbar() {
         <span className="animate-fade-in">{topBarTexts[currentTextIndex]}</span>
       </div>
 
-      {/* Navbar: Shadow on Hover */}
+      {/* Navbar */}
       <div
         className={`navbar ${styles["navbar-shadow"]} bg-white fixed top-8 w-full z-40 px-8`}
       >
@@ -54,24 +105,30 @@ export default function CustomNavbar() {
           {/* Right Side: Icons */}
           <div className="flex text-gray-900 gap-4 items-center">
             {/* User Profile Icon */}
-    
-            <UserIcon/>
-            
-            {/* Shopping Cart Icon */}
-            <FontAwesomeIcon
-              icon={faShoppingCart}
-              className="h-5 w-5 cursor-pointer"
-            />
+            <UserIcon />
 
-            {/* Sidebar Toggle Button with DaisyUI Swap */}
+            {/* Shopping Cart Icon */}
+            <Link href="/cart">
+              <div className="relative">
+                <FontAwesomeIcon
+                  icon={faShoppingCart}
+                  className="h-6 w-6 text-gray-900 cursor-pointer"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs px-1">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+            </Link>
+
+            {/* Sidebar Toggle Button */}
             <label className="btn-circle swap swap-rotate">
-              {/* Checkbox to toggle state */}
               <input
                 type="checkbox"
                 checked={isOpen}
                 onChange={() => setIsOpen((prev) => !prev)}
               />
-
               {/* Hamburger Icon */}
               <svg
                 className="swap-off fill-current"
@@ -82,7 +139,6 @@ export default function CustomNavbar() {
               >
                 <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
               </svg>
-
               {/* Close Icon */}
               <svg
                 className="swap-on fill-current"
@@ -97,56 +153,6 @@ export default function CustomNavbar() {
           </div>
         </div>
       </div>
-
-      {/* Right-Side Sidebar */}
-      <div
-        className={`fixed top-0 right-0 h-full bg-white w-64 transform ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50 shadow-lg`}
-      >
-        {/* Sidebar Content */}
-        <button
-          onClick={() => setIsOpen(false)}
-          className="text-2xl pl-4 pt-2 cursor-pointer hover:text-gray-500 transition-colors duration-200"
-        >
-          ✕
-        </button>
-        <ul className="p-8">
-          <li className="py-4 text-2xl">
-            <a href="#" className="hover:text-gray-400">
-              Startsida
-            </a>
-          </li>
-          <li className="text-2xl py-4">
-            <a href="#" className="hover:text-gray-400">
-              Välj en box
-            </a>
-          </li>
-          <li className="text-2xl py-4">
-            <a href="#" className="hover:text-gray-400">
-              Om Equibox
-            </a>
-          </li>
-          <li className="text-2xl py-4">
-            <a href="#" className="hover:text-gray-400">
-              FAQ
-            </a>
-          </li>
-          <li className="text-2xl py-4">
-            <a href="#" className="hover:text-gray-400">
-              Support
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-10"
-          onClick={() => setIsOpen(false)}
-        ></div>
-      )}
     </div>
   );
 }
