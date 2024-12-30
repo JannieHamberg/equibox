@@ -270,7 +270,8 @@ class REST_API {
     // Generate and return a nonce for frontend API requests
     public static function get_nonce() {
         return rest_ensure_response([
-            'nonce' => wp_create_nonce('wp_rest'),
+            'wp_rest_nonce' => wp_create_nonce('wp_rest'),
+            'wc_store_api_nonce' => wp_create_nonce('wc_store_api'),
         ]);
     }
     
