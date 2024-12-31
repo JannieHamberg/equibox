@@ -17,28 +17,19 @@ export default function CustomNavbar() {
   useEffect(() => {
     const fetchCartData = async () => {
       try {
-          const nonceResponse = await fetch("/api/get_nonce");
-          if (!nonceResponse.ok) {
-              console.error("Failed to fetch nonce:", nonceResponse.statusText);
-              return;
-          }
-          const { wc_store_api_nonce } = await nonceResponse.json();
-  
-          const response = await fetch("/cart", {
-              method: "GET",
-              headers: {
-                  "X-WC-Store-API-Nonce": wc_store_api_nonce,
-                  "Content-Type": "application/json",
-              },
-              credentials: "include",
-          });
-
-        console.log("Response status:", response.status);
+        const token = localStorage.getItem("authToken");
+        const response = await fetch("/cart/items", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Cart data:", data);
-          setCartCount(data.items_count || 0); // Update cart item count
+          setCartCount(data.items_count || 0); // Update cart count
         } else {
           console.error("Failed to fetch cart data:", response.statusText);
           setCartCount(0);
@@ -55,7 +46,7 @@ export default function CustomNavbar() {
     const handleCartUpdate = () => fetchCartData();
     window.addEventListener("cart-updated", handleCartUpdate);
 
-    // Cleanup
+    // Cleanup listener
     return () => window.removeEventListener("cart-updated", handleCartUpdate);
   }, []);
   

@@ -1,14 +1,15 @@
 <?php
 
-if (!defined('ARRAY_A')) {
-    define('ARRAY_A', 1);
-}
+        if (!defined('ARRAY_A')) {
+            define('ARRAY_A', 1);
+        }
 
-class REST_API {
-    public static function init() {
-        add_action('rest_api_init', [__CLASS__, 'register_routes']);
-        error_log('REST API Initialized');
-    }
+    class REST_API {
+            public static function init() {
+                add_action('rest_api_init', [__CLASS__, 'register_routes']);
+                error_log('REST API Initialized');
+            }
+
 
     public static function register_routes() {
 
@@ -268,12 +269,39 @@ class REST_API {
     }
     
     // Generate and return a nonce for frontend API requests
-    public static function get_nonce() {
+    public static function get_nonce(WP_REST_Request $request) {
+        // Log request headers and body for debugging purposes
+        error_log('Request Headers: ' . json_encode($request->get_headers()));
+        error_log('Request Body: ' . $request->get_body());
+    
+        // Generate both WP REST and WC Store API nonces
+        $wp_rest_nonce = wp_create_nonce('wp_rest');
+        $wc_store_api_nonce = wp_create_nonce('wc_store_api');
+    
+        // Log the generated nonces for debugging
+        error_log('WP REST Nonce: ' . $wp_rest_nonce);
+        error_log('WC Store API Nonce: ' . $wc_store_api_nonce);
+    
+        // Return the nonces in the response
         return rest_ensure_response([
-            'wp_rest_nonce' => wp_create_nonce('wp_rest'),
-            'wc_store_api_nonce' => wp_create_nonce('wc_store_api'),
+            'wp_rest_nonce' => $wp_rest_nonce,
+            'wc_store_api_nonce' => $wc_store_api_nonce,
         ]);
     }
+
+    public function validate_request_nonce() {
+        $nonce = isset($_SERVER['HTTP_X_WC_STORE_API_NONCE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_WC_STORE_API_NONCE'])) : '';
+        if (!wp_verify_nonce($nonce, 'wc_store_api')) {
+            error_log('WooCommerce Nonce Validation Failed: Nonce - ' . $nonce);
+            error_log('Expected Action: wc_store_api');
+            return new WP_Error('woocommerce_rest_missing_nonce', __('Missing "Nonce" header. This endpoint requires a valid one-time-use code (nonce).'), array('status' => 401));
+        }
+        error_log('WooCommerce Nonce Validation Passed: Nonce - ' . $nonce);
+        return true;
+    }
+    
+    
+    
     
     
 }
