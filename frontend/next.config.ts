@@ -42,16 +42,24 @@ const nextConfig: NextConfig = {
     },
     {
       source: "/woocommerce/add-to-cart",
-      destination: "https://backend.equibox.se/wp-json/wc/v3/cart/add",
+      destination: "https://backend.equibox.se/wp-json/wc/store/cart/add-item",
     },
     {
-      source: '/cart',
-      destination: 'https://backend.equibox.se/cart',
+      source: "/cart",
+      destination: "https://backend.equibox.se/wp-json/wc/store/cart",
+    },
+    {
+      source: "/checkout",
+      destination: "https://backend.equibox.se/wp-json/wc/store/checkout",
+    },
+    {
+      source: "/cart/items",
+      destination: "https://backend.equibox.se/wp-json/wc/store/cart/items",
     },
     {
       source: "/api/get_nonce",
       destination: "https://backend.equibox.se/wp-json/equibox/v1/get_nonce", 
-    },
+    }
     
  
     ];

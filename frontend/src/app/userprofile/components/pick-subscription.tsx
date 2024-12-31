@@ -22,17 +22,36 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
   const handleActivate = async () => {
     if (selectedPlanId) {
       try {
+        // Call the onSelectPlan function
         onSelectPlan(selectedPlanId);
-        // Redirect to WooCommerce with the selected plan ID
-        const response = await fetch(`/woocommerce/add-to-cart`, {
-          method: "POST",
+  
+        // Fetch nonce
+        const nonceResponse = await fetch("cart/items", {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ planId: selectedPlanId }),
+          credentials: "include",
         });
   
-        if (!response.ok) throw new Error("Failed to add plan to WooCommerce cart.");
+        if (!nonceResponse.ok) throw new Error("Failed to fetch nonce.");
+        const nonce = nonceResponse.headers.get("nonce");
+  
+        // Add item to cart
+        const response = await fetch("/woocommerce/add-to-cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-WC-Store-API-Nonce": nonce || "", // Ensure a valid nonce
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            id: selectedPlanId,
+            quantity: 1,
+          }),
+        });
+  
+        if (!response.ok) throw new Error("Failed to add to cart.");
   
         // Redirect to checkout
         window.location.href = "/checkout";
@@ -44,6 +63,8 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
       alert("Välj en prenumerationsbox.");
     }
   };
+  
+  
 
   return (
 <div className="mt-16 w-full  mx-auto p-4">
