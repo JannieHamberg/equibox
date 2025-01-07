@@ -34,7 +34,7 @@ export default function Login() {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
+            placeholder="Användarnamn"
             className="input input-bordered w-full"
             required
           />
@@ -44,13 +44,13 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="Lösenord"
             className="input input-bordered w-full"
             required
           />
         </div>
         <button type="submit" className="btn btn-primary w-full">
-          Login
+          Logga in
         </button>
       </form>
     </div>
