@@ -1,15 +1,45 @@
 <?php
 
-        if (!defined('ARRAY_A')) {
-            define('ARRAY_A', 1);
-        }
+if (!defined('ARRAY_A')) {
+    define('ARRAY_A', 1);
+}
+
+// Include dependencies
+require_once __DIR__ . '/client-secret-handler.php';
+require_once __DIR__ . '/class-stripe-integration.php';
+error_log('Stripe_Integration class file loaded.');
+
+// Ensure Stripe_Integration class is initialized
+if (class_exists('Stripe_Integration')) {
+    Stripe_Integration::init(); // Initialize the class if it has an init method
+    error_log('Stripe_Integration class initialized.');
+} else {
+    error_log('Stripe_Integration class does not exist!');
+}
 
     class REST_API {
-            public static function init() {
-                add_action('rest_api_init', [__CLASS__, 'register_routes']);
-                error_log('REST API Initialized');
-            }
+    public static function init() {
+        add_action('rest_api_init', [__CLASS__, 'register_routes']);
+        error_log('REST API Initialized');
+        
+        add_filter('jwt_auth_token_before_dispatch', [__CLASS__, 'validate_jwt_from_cookie'], 10, 2);
+        error_log("JWT validation filter added");
+    }
 
+    public static function validate_jwt_from_cookie($token, $user) {
+        error_log('JWT validation initiated.');
+    
+        
+        if (empty($token) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $token = sanitize_text_field(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
+            error_log('JWT token retrieved from Authorization header: ' . $token);
+        } elseif (empty($token)) {
+            error_log('Authorization header is empty. Token not found.');
+        }
+    
+        return $token;
+    }
+    
 
     public static function register_routes() {
 
@@ -23,6 +53,7 @@
                     'permission_callback' => '__return_true',
                 ]
             );
+            
 
 
         // Public endpoint to get all subscription plans
@@ -36,17 +67,7 @@
             ]
         );
 
-        register_rest_route(
-            'equibox/v1',
-            '/add-to-cart',
-            [
-                'methods' => 'POST',
-                'callback' => ['Woo_Integration', 'add_subscription_to_cart'],
-                'permission_callback' => '__return_true', // Public access
-            ]
-        );
-        
-
+       
         // User registration route
         register_rest_route(
             'equibox/v1',
@@ -68,6 +89,88 @@
                 'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
             ]
         );
+
+        // Create Stripe subscription 
+        register_rest_route(
+            'stripe/v1',
+            '/create-subscription',
+            [
+                'methods' => 'POST',
+                'callback' => [Stripe_Integration::class, 'create_subscription'], 
+                'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
+               
+            ]
+        );
+
+        register_rest_route('stripe/v1', '/get-or-create-customer', [
+            'methods' => 'POST',
+            'callback' => [Stripe_Integration::class, 'get_or_create_customer_endpoint'], 
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
+        ]);
+        
+        
+        // Handle Stripe webhook events
+        register_rest_route(
+            'equibox/v1',
+            '/stripe-webhook',
+            [
+                'methods' => 'POST',
+                'callback' => ['Stripe_Handler', 'handle_webhook'],
+                'permission_callback' => '__return_true',
+            ]
+        );
+
+        register_rest_route('stripe/v1', '/create-payment-intent', [
+            'methods' => 'POST',
+            'callback' => ['Stripe_Integration', 'handle_create_payment_intent'],
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+
+        ]);
+
+        register_rest_route('stripe/v1', '/get-customer-id', [
+            'methods' => 'GET',
+            'callback' => [Stripe_Integration::class, 'get_customer_id'],
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
+
+        ]);
+
+        
+        register_rest_route('stripe/v1', '/create-client-secret',[
+            'methods' => 'POST',
+            'callback' => 'handle_create_client_secret',
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
+          
+
+        ]);
+
+        register_rest_route('stripe/v1', '/attach-payment-method', [
+            'methods' => 'POST',
+            'callback' => [Stripe_Integration::class, 'attach_payment_method'], 
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+        ]);
+      
+        
+     /*    register_rest_route('stripe/v1', '/cancel-subscription', [
+            'methods' => 'POST',
+            'callback' => [Stripe_Integration::class, 'cancel_subscription'],
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+        ]);
+
+        register_rest_route('stripe/v1', '/retrieve-subscription', [
+            'methods' => 'GET',
+            'callback' => [Stripe_Integration::class, 'retrieve_subscription'],
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+        ]);
+        
+        register_rest_route('stripe/v1', '/update-subscription', [
+            'methods' => 'POST',
+            'callback' => [Stripe_Integration::class, 'update_subscription'],
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+        ]);
+         */
+        
+
+
 
         // Existing user-specific routes
         register_rest_route(
@@ -179,16 +282,6 @@
             ]
         );
 
-        register_rest_route(
-            'equibox/v1',
-            '/stripe-webhook',
-            [
-                'methods' => 'POST',
-                'callback' => ['Stripe_Webhook_Handler', 'handle_webhook'],
-                'permission_callback' => '__return_true', //Public access
-            ]
-        );
-
         // Add a subscription plan
         register_rest_route('equibox/v1', '/admin/subscription_plans/add', [
             'methods' => 'POST',
@@ -254,6 +347,8 @@
                 return true;
             },
         ]);
+
+
       
     }
     // Permission callbacks
@@ -267,41 +362,7 @@
         }
         return true;
     }
-    
-    // Generate and return a nonce for frontend API requests
-    public static function get_nonce(WP_REST_Request $request) {
-        // Log request headers and body for debugging purposes
-        error_log('Request Headers: ' . json_encode($request->get_headers()));
-        error_log('Request Body: ' . $request->get_body());
-    
-        // Generate both WP REST and WC Store API nonces
-        $wp_rest_nonce = wp_create_nonce('wp_rest');
-        $wc_store_api_nonce = wp_create_nonce('wc_store_api');
-    
-        // Log the generated nonces for debugging
-        error_log('WP REST Nonce: ' . $wp_rest_nonce);
-        error_log('WC Store API Nonce: ' . $wc_store_api_nonce);
-    
-        // Return the nonces in the response
-        return rest_ensure_response([
-            'wp_rest_nonce' => $wp_rest_nonce,
-            'wc_store_api_nonce' => $wc_store_api_nonce,
-        ]);
-    }
 
-    public function validate_request_nonce() {
-        $nonce = isset($_SERVER['HTTP_X_WC_STORE_API_NONCE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_WC_STORE_API_NONCE'])) : '';
-        if (!wp_verify_nonce($nonce, 'wc_store_api')) {
-            error_log('WooCommerce Nonce Validation Failed: Nonce - ' . $nonce);
-            error_log('Expected Action: wc_store_api');
-            return new WP_Error('woocommerce_rest_missing_nonce', __('Missing "Nonce" header. This endpoint requires a valid one-time-use code (nonce).'), array('status' => 401));
-        }
-        error_log('WooCommerce Nonce Validation Passed: Nonce - ' . $nonce);
-        return true;
-    }
-    
-    
-    
-    
+
     
 }

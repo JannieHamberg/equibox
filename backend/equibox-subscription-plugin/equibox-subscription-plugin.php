@@ -22,15 +22,19 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 }
 
 // Include required classes
+
+require_once plugin_dir_path(__FILE__) . 'includes/class-rest-api.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-stripe-integration.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-stripe-webhook-handler.php';
+
+require_once plugin_dir_path(__FILE__) . 'includes/client-secret-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/subscription-user-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/subscription-admin-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-box-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-product-handler.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-rest-api.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-stripe-integration.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-woo-integration.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-stripe-webhook-handler.php';
+
 require_once plugin_dir_path(__FILE__) . 'includes/admin-dashboard.php';
+
 
 // Enqueue styles and scripts for the admin dashboard
 add_action('admin_enqueue_scripts', function ($hook) {
@@ -67,6 +71,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
 // Initialize the plugin
 function equibox_subscription_plugin_init() {
     REST_API::init();
-    Woo_Integration::init();
+    Stripe_Integration::init(); 
+    
 }
 add_action('plugins_loaded', 'equibox_subscription_plugin_init');

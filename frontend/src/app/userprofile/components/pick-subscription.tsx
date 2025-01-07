@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Plan {
   id: number;
@@ -17,47 +18,27 @@ interface PickSubscriptionProps {
 }
 
 export default function PickSubscription({ availablePlans, onSelectPlan }: PickSubscriptionProps) {
+  const router = useRouter();
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
 
   const handleActivate = async () => {
+    console.log("Selected Plan ID:", selectedPlanId);
     if (selectedPlanId) {
       try {
-        // Call the onSelectPlan function
-        onSelectPlan(selectedPlanId);
+        const selectedPlan = availablePlans.find((plan) => plan.id === selectedPlanId);
+        if (!selectedPlan) {
+          throw new Error("Selected plan not found");
+        }
   
-        // Fetch nonce
-        const nonceResponse = await fetch("cart/items", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
+           // Store the selected plan details in sessionStorage
+        sessionStorage.setItem("subscriptionPlan", JSON.stringify(selectedPlan));
+        console.log("Subscription plan stored:", selectedPlan);
   
-        if (!nonceResponse.ok) throw new Error("Failed to fetch nonce.");
-        const nonce = nonceResponse.headers.get("nonce");
-  
-        // Add item to cart
-        const response = await fetch("/woocommerce/add-to-cart", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-WC-Store-API-Nonce": nonce || "", // Ensure a valid nonce
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            id: selectedPlanId,
-            quantity: 1,
-          }),
-        });
-  
-        if (!response.ok) throw new Error("Failed to add to cart.");
-  
-        // Redirect to checkout
-        window.location.href = "/checkout";
+        // Proceed to checkout since we're already authenticated (using cookies)
+        router.push("/checkout");
       } catch (error) {
-        console.error(error);
-        alert("An error occurred while processing your subscription.");
+        console.error("Error:", error);
+        alert("Ett fel uppstod när prenumerationen skulle aktiveras.");
       }
     } else {
       alert("Välj en prenumerationsbox.");
@@ -65,51 +46,51 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
   };
   
   
+  
 
   return (
-<div className="mt-16 w-full  mx-auto p-4">
-  <h1 className="text-3xl font-bold mb-8 text-center">Välj en prenumerationsbox</h1>
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {availablePlans.map((plan) => (
-      <div
-        key={plan.id}
-        className={`card bg-base-100 shadow-xl w-full ${
-          selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
-        }`}
-        onClick={() => setSelectedPlanId(plan.id)}
-      >
-        <figure>
-        <Image
-          src={plan.image_url} 
-          alt={plan.name}       
-          width={300}           
-          height={200}         
-          className="w-full h-48 object-contain" 
-        />
-      </figure>
-        <div className="card-body">
-          <h2 className="card-title">{plan.name}</h2>
-          <p>{plan.description}</p>
-          <p className="font-bold text-sm">
-            {plan.price} SEK / {plan.interval === "monthly" ? "månadsvis" : plan.interval}
-          </p>
-          <div className="card-actions justify-end">
-            <button
-              className={`btn w-full ${selectedPlanId === plan.id ? "btn-neutral" : "btn-outline"}`}
-            >
-              {selectedPlanId === plan.id ? "Vald" : "Välj"}
-            </button>
+    <div className="mt-32 container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-8 text-center">Välj en prenumerationsbox</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {availablePlans.map((plan) => (
+          <div
+            key={plan.id}
+            className={`card bg-base-100 shadow-xl w-full ${
+              selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
+            }`}
+            onClick={() => setSelectedPlanId(plan.id)}
+          >
+            <figure>
+            <Image
+              src={plan.image_url} 
+              alt={plan.name}       
+              width={300}           
+              height={200}         
+              className="w-full h-48 object-contain" 
+            />
+          </figure>
+            <div className="card-body">
+              <h2 className="card-title">{plan.name}</h2>
+              <p>{plan.description}</p>
+              <p className="font-bold text-sm">
+                {plan.price} SEK / {plan.interval === "monthly" ? "månadsvis" : plan.interval}
+              </p>
+              <div className="card-actions justify-end">
+                <button
+                  className={`btn w-full ${selectedPlanId === plan.id ? "btn-neutral" : "btn-outline"}`}
+                >
+                  {selectedPlanId === plan.id ? "Vald" : "Välj"}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
-    ))}
-  </div>
-  <div className="mt-8 text-end">
-    <button onClick={handleActivate} className="btn btn-neutral">
-      Bekräfta prenumeration
-    </button>
-  </div>
-</div>
-
+      <div className="mt-8 text-end">
+        <button onClick={handleActivate} className="btn btn-neutral">
+          Bekräfta prenumeration
+        </button>
+      </div>
+    </div>
   );
 }

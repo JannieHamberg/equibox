@@ -2,7 +2,7 @@
 import styles from "../userprofile.module.css";
 import { useEffect, useState } from "react";
 import LogoutButton from "./logout-btn";
-import PickSubscription from "./pick-subscription"; 
+import PickSubscription from "./pick-subscription";
 
 interface Subscription {
   id: number;
@@ -27,7 +27,7 @@ interface Plan {
 }
 
 export default function UserDashboard() {
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null | undefined>(undefined);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,121 +38,128 @@ export default function UserDashboard() {
 
   // Fetch the user's current subscription
   const fetchUserSubscription = async () => {
+    console.log("Fetching user subscription...");
     try {
-      const token = localStorage.getItem("authToken");
-      console.log("Auth Token:", token)
-      if (!token) {
-        throw new Error("Användaren är inte inloggad.");
-      }
-  
       const response = await fetch("/user/subscription", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        credentials: "include", // Send cookies
       });
 
-      console.log("Response Status:", response.status); 
-  
-      if (response.status === 404) {
-        console.log("Ingen prenumeration hittades på användaren."); 
-        setSubscription(null); // No subscription, let the PickSubscription component show
+      console.log("Response Status (fetchUserSubscription):", response.status);
+
+      if (response.status === 401) {
+        console.log("Unauthorized - no subscription.");
+        setSubscription(null);
         return;
       }
-  
-      if (!response.ok) {
-       
-        throw new Error("Misslyckades att hämta användarens prenumeration.");
+
+      if (response.status === 404) {
+        console.log("No subscription found.");
+        setSubscription(null);
+        return;
       }
-  
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        throw new Error(errorData.message || "Failed to fetch user's subscription.");
+      }
+
       const data = await response.json();
-      console.log("Subscription data:", data);
+      console.log("Fetched subscription data:", data);
       setSubscription(data.data[0]);
     } catch (err) {
+      setSubscription(null); // Ensure null if error occurs
       setError(err instanceof Error ? err.message : "An unknown error occurred");
-      console.error(err);
+      console.error("Error fetching subscription:", err);
     }
   };
-  
-  
+
   // Fetch all available subscription plans
   const fetchAvailablePlans = async () => {
+    console.log("Fetching available plans...");
     try {
       const response = await fetch("/subscriptions/prenumerationer", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", 
       });
-  
-      if (!response.ok) throw new Error("Failed to fetch available plans");
-  
+
+      console.log("Response Status (fetchAvailablePlans):", response.status);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch available plans");
+      }
+
       const data = await response.json();
-      console.log("Available plans data:", data);
-  
-      // Map over the data to ensure image_url exists
+      console.log("Available plans data received:", data);
+
       const plansWithImage = data.data.map((plan: Plan) => ({
         ...plan,
-        image_url: plan.image_url || "/boxar/fallback-image.webp", 
+        image_url: plan.image_url || "/boxar/fallback-image.webp",
       }));
-  
+
       setAvailablePlans(plansWithImage);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
-      console.error(err);
+      console.error("Error fetching available plans:", err);
     }
   };
-  
+
   const handleActivateSubscription = async (planId: number) => {
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("User is not logged in");
-      }
-  
       const endpoint = subscription ? "/user/subscription/update" : "/user/subscribe";
       const method = subscription ? "PUT" : "POST";
-  
+
       console.log("Payload being sent:", JSON.stringify({ plan_id: planId }));
+
       const response = await fetch(endpoint, {
         method,
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ plan_id: planId }),
       });
-  
+
       if (!response.ok) throw new Error("Failed to process subscription");
-  
+
       alert("Subscription successfully updated!");
-      fetchUserSubscription();
+      fetchUserSubscription(); // Refresh subscription data after update
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
       console.error(err);
     }
   };
-
 
   if (error) {
     return <div>Error: {error}</div>;
   }
 
-  if (!availablePlans.length) {
-    return <div>Loading...</div>;
+  if (!availablePlans.length || subscription === undefined) {
+    return <div>Loading data...</div>;
   }
 
   return (
-    <div className={`mt-40 max-w-max	 mx-auto p-4 bg-stone-100 ${styles.shadow} ${styles.rounded}`}>
+    <div className={`mt-40 max-w-max mx-auto p-4 bg-stone-100 ${styles.shadow} ${styles.rounded}`}>
       <h1 className="text-3xl font-bold pl-6 mb-6">Mitt konto</h1>
 
-      {/* Render PickSubscription if no active subscription */}
       {!subscription ? (
-        <PickSubscription
-          availablePlans={availablePlans}
-          onSelectPlan={handleActivateSubscription}
-        />
+        <>
+          {console.log("Rendering PickSubscription component")}
+          <PickSubscription
+            availablePlans={availablePlans}
+            onSelectPlan={(planId) => {
+              console.log("Activating subscription with planId:", planId);
+              handleActivateSubscription(planId);
+            }}
+          />
+        </>
       ) : (
         <div>
           <div className="p-6">
