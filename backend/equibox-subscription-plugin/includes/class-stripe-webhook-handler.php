@@ -156,12 +156,10 @@ class Stripe_Webhook_Handler {
             error_log("Invalid subscription creation payload");
             return;
         }
-
-        $order_id = $subscription->metadata->order_id ?? null;
         $user_id = $subscription->metadata->user_id ?? null;
 
-        if (!$order_id && !$user_id) {
-            error_log("No WooCommerce order or user ID found in subscription metadata.");
+        if (!$user_id) {
+            error_log("No user ID found in subscription metadata.");
             return;
         }
 
@@ -175,7 +173,6 @@ class Stripe_Webhook_Handler {
             "{$wpdb->prefix}subscriptions",
             [
                 'user_id' => $user_id,
-                'order_id' => $order_id,
                 'plan_id' => $plan_id,
                 'stripe_subscription_id' => $subscription->id,
                 'status' => $subscription->status,
@@ -204,12 +201,16 @@ class Stripe_Webhook_Handler {
         ));
         error_log('Plan ID fetched for update: ' . ($plan_id ?: 'Not Found'));
 
+        $payment_due_date = !empty($subscription->current_period_end)
+        ? date('Y-m-d H:i:s', $subscription->current_period_end)
+        : null;
+
         $updated = $wpdb->update(
             "{$wpdb->prefix}subscriptions",
             [
                 'status' => $subscription->status,
                 'plan_id' => $plan_id,
-                'payment_due_date' => date('Y-m-d H:i:s', $subscription->current_period_end),
+                'payment_due_date' => $payment_due_date,
                 'updated_at' => current_time('mysql'),
             ],
             ['stripe_subscription_id' => $subscription->id]
@@ -217,19 +218,7 @@ class Stripe_Webhook_Handler {
 
         if ($updated === false) {
             error_log('Failed to update subscription in database: ' . $wpdb->last_error);
-        } else {
-            $order_id = $wpdb->get_var($wpdb->prepare(
-                "SELECT order_id FROM {$wpdb->prefix}subscriptions WHERE stripe_subscription_id = %s",
-                $subscription->id
-            ));
-            if ($order_id) {
-                $order = wc_get_order($order_id);
-                if ($order) {
-                    $order->update_status('completed', 'Subscription updated in Stripe');
-                    error_log("WooCommerce order updated for subscription: {$subscription->id}");
-                }
-            }
-        }
+        } 
     }
 
     private static function handle_subscription_deleted($subscription) {

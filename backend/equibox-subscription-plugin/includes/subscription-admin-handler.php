@@ -133,7 +133,7 @@ class Subscription_Admin_Handler {
             }
         }
 
-        if (class_exists('WC_Product_Simple')) {
+        /* if (class_exists('WC_Product_Simple')) {
             $product = new WC_Product_Simple();
             $product->set_name($plan_name);
             $product->set_regular_price($final_price);
@@ -150,7 +150,7 @@ class Subscription_Admin_Handler {
                 ['product_id' => $product_id],
                 ['id' => $plan_id]
             );
-        }
+        } */
 
         $plan = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d",

@@ -8,11 +8,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  
 
   const handleLogin = async () => {
     setError(null); // Reset any previous errors
     try {
-        console.log("Token request initiated", { username, password });
+      console.log("Token request initiated", { username, password });
+
       // Send login credentials to backend
       const response = await fetch("https://backend.equibox.se/wp-json/jwt-auth/v1/token", {
         method: "POST",
@@ -20,27 +22,35 @@ export default function LoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        /* credentials: "include",  */
       });
 
       if (!response.ok) {
         throw new Error("Invalid username or password");
       }
-
+      console.log("Login Response Headers:");
+      for (const [key, value] of response.headers.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+      // Optionally verify login success
       const data = await response.json();
-
-      // Store the JWT token in localStorage or cookies
-      localStorage.setItem("authToken", data.token);
+      console.log("Login successful", data);
+       // Store the user's email and name in sessionStorage
+      sessionStorage.setItem("authToken", data.token);
+      sessionStorage.setItem("userEmail", data.user_email); 
+      sessionStorage.setItem("userName", data.user_display_name);
 
       // Redirect to the dashboard
+      console.log("Before redirection:", window.location.href);
       router.push("/userprofile");
+      console.log("After redirection:", window.location.href);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }
   };
 
   return (
-    
-    <div className=" max-w-sm mx-auto mt-60 p-6 bg-white shadow rounded">
+    <div className="max-w-sm mx-auto mt-60 p-6 bg-white shadow rounded">
       <h1 className="text-2xl font-bold mb-4">Login</h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -61,11 +71,10 @@ export default function LoginPage() {
       />
       <button
         onClick={handleLogin}
-        className="w-full btn text-white p-2 "
+        className="w-full btn text-white p-2"
       >
         Login
       </button>
     </div>
-    
   );
 }
