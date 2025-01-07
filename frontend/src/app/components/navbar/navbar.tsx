@@ -11,10 +11,10 @@ import UserIcon from "./user-profile-icon";
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
+ /*  const [cartCount, setCartCount] = useState(0); */
 
-  // Fetch WooCommerce cart data
-  useEffect(() => {
+  // Fetch cart data
+/*   useEffect(() => {
     const fetchCartData = async () => {
       try {
         const token = localStorage.getItem("authToken");
@@ -48,7 +48,7 @@ export default function CustomNavbar() {
 
     // Cleanup listener
     return () => window.removeEventListener("cart-updated", handleCartUpdate);
-  }, []);
+  }, []); */
   
   // Slideshow text for the top bar
   const topBarTexts = [
@@ -101,11 +101,11 @@ export default function CustomNavbar() {
                   icon={faShoppingCart}
                   className="h-6 w-6 text-gray-900 cursor-pointer"
                 />
-                {cartCount > 0 && (
+           {/*      {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs px-1">
                     {cartCount}
                   </span>
-                )}
+                )} */}
               </div>
             </Link>
 

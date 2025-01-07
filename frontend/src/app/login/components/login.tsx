@@ -75,6 +75,14 @@ export default function LoginPage() {
       >
         Login
       </button>
+      <div className="mt-4 text-center">
+        <p>
+          Har du inget konto?{" "}
+          <a href="/signup" className="text-primary underline">
+            Skapa konto
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

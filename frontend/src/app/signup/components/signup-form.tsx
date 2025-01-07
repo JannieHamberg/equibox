@@ -43,7 +43,7 @@ export default function SignupForm() {
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setTimeout(() => setShowLoginForm(true), 2000); // Wait for 2 seconds before switching to login form
+      setTimeout(() => setShowLoginForm(true), 1000); 
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Ett okänt fel inträffade.");
     }
