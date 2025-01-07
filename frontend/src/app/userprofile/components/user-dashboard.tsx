@@ -155,7 +155,6 @@ export default function UserDashboard() {
           <PickSubscription
             availablePlans={availablePlans}
             onSelectPlan={(planId) => {
-              console.log("Activating subscription with planId:", planId);
               handleActivateSubscription(planId);
             }}
           />
