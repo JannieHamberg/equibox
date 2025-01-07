@@ -34,7 +34,7 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
         sessionStorage.setItem("subscriptionPlan", JSON.stringify(selectedPlan));
         console.log("Subscription plan stored:", selectedPlan);
   
-        // Proceed to checkout since we're already authenticated (using cookies)
+        // Proceed to checkout since already authenticated 
         router.push("/checkout");
       } catch (error) {
         console.error("Error:", error);
@@ -58,7 +58,10 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
             className={`card bg-base-100 shadow-xl w-full ${
               selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
             }`}
-            onClick={() => setSelectedPlanId(plan.id)}
+            onClick={() => {
+              setSelectedPlanId(plan.id);
+              onSelectPlan(plan.id); // Notify parent about the selection
+            }}
           >
             <figure>
             <Image

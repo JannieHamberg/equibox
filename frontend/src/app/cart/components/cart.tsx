@@ -33,10 +33,10 @@ export default function Cart() {
     setCartItems(cartItems.filter((item) => item.id !== itemId));
   };
 
-  const handleAddSubscription = (subscription: SubscriptionItem) => {
-    // Only allow one subscription at a time
+/*   const handleAddSubscription = (subscription: SubscriptionItem) => {
+   
     setCartItems([subscription]);
-  };
+  }; */
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
@@ -71,11 +71,11 @@ export default function Cart() {
                 <div className="flex items-start gap-4">
                   {item.image_url && (
                     <div className="w-24 h-24 relative">
-                      <img 
+                    {/*   <img 
                         src={item.image_url} 
                         alt={item.name}
                         className="object-cover rounded-lg"
-                      />
+                      /> */}
                     </div>
                   )}
                   <div className="flex-1">

@@ -21,7 +21,7 @@ export default function SubscriptionSuccess() {
           <div className="divider"></div>
           
           <div className="space-y-2">
-            <p>What's next?</p>
+            <p>Whats next?</p>
             <div className="flex flex-col gap-2">
               <Link href="/userprofile" className="btn btn-primary">
                 Mitt Konto
