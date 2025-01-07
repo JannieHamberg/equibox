@@ -151,7 +151,6 @@ export default function UserDashboard() {
 
       {!subscription ? (
         <>
-          {console.log("Rendering PickSubscription component")}
           <PickSubscription
             availablePlans={availablePlans}
             onSelectPlan={(planId) => {
