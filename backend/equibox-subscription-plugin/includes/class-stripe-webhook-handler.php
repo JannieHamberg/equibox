@@ -4,31 +4,36 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Load Stripe SDK
+require_once __DIR__ . '/../vendor/autoload.php'; 
+use Stripe\Webhook;
+
 class Stripe_Webhook_Handler {
 
     // Verify the Stripe webhook signature
     private static function verify_stripe_webhook_signature() {
         error_log('Verifying webhook signature');
-
+    
         $endpoint_secret = defined('STRIPE_WEBHOOK_SECRET') ? STRIPE_WEBHOOK_SECRET : null;
         if (!$endpoint_secret) {
             error_log('Webhook secret is not defined');
             throw new Exception('Stripe webhook secret is not defined.');
         }
-
+    
         $stripe_signature = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
         error_log('Stripe signature received: ' . ($stripe_signature ?: 'None'));
-
+    
         $payload = @file_get_contents('php://input');
         error_log('Webhook payload: ' . ($payload ?: 'None'));
-
+    
         if (empty($stripe_signature)) {
             error_log('Missing Stripe signature.');
             return false;
         }
-
+    
         try {
-            \Stripe\Webhook::constructEvent($payload, $stripe_signature, $endpoint_secret);
+            // Verify the signature
+            Webhook::constructEvent($payload, $stripe_signature, $endpoint_secret);
             error_log('Webhook signature verification successful');
             return true;
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
@@ -36,12 +41,12 @@ class Stripe_Webhook_Handler {
             return false;
         }
     }
+    
 
     public static function handle_webhook($request) {
         error_log('Stripe webhook handler triggered - START');
-        error_log('Request details: ' . print_r($request, true));
-
-        // Verify Stripe webhook signature before proceeding
+    
+        // Verify the webhook signature
         try {
             if (!self::verify_stripe_webhook_signature()) {
                 error_log('Webhook signature verification failed');
@@ -51,53 +56,85 @@ class Stripe_Webhook_Handler {
             error_log('Webhook verification error: ' . $e->getMessage());
             return new WP_Error('verification_error', $e->getMessage(), ['status' => 500]);
         }
-
-        // Retrieve the payload
+    
+        // Retrieve and decode the payload
         $payload = @file_get_contents('php://input');
-        error_log('Received webhook payload: ' . ($payload ?: 'None'));
-
         $event = json_decode($payload);
         error_log('Decoded event: ' . print_r($event, true));
-
+    
         if (json_last_error() !== JSON_ERROR_NONE) {
             error_log('Invalid JSON payload received.');
             return new WP_Error('invalid_payload', 'Invalid JSON payload received.', ['status' => 400]);
         }
-
-        // Handle events
+    
+        // Handle the specific event type
         switch ($event->type) {
-            case 'invoice.payment_succeeded':
+           /*  case 'invoice.created':
+                error_log('Handling event: invoice.created');
+                self::handle_invoice_created($event->data->object);
+                break; */
+                case 'invoice.payment_succeeded':
                 error_log('Handling event: invoice.payment_succeeded');
                 self::handle_payment_succeeded($event->data->object);
-                break;
-
-            case 'invoice.payment_failed':
+                break; 
+           /*  case 'invoice.finalized':
+                error_log('Handling event: invoice.finalized');
+                self::handle_invoice_finalized($event->data->object);
+                break; */
+    
+             case 'invoice.payment_failed':
                 error_log('Handling event: invoice.payment_failed');
                 self::handle_payment_failed($event->data->object);
-                break;
-
+                break; 
+    
             case 'customer.subscription.created':
                 error_log('Handling event: customer.subscription.created');
                 self::handle_subscription_created($event->data->object);
                 break;
-
+    
             case 'customer.subscription.updated':
                 error_log('Handling event: customer.subscription.updated');
                 self::handle_subscription_updated($event->data->object);
                 break;
-
+    
             case 'customer.subscription.deleted':
                 error_log('Handling event: customer.subscription.deleted');
                 self::handle_subscription_deleted($event->data->object);
                 break;
-
+    
             default:
                 error_log('Unhandled event type: ' . $event->type);
         }
-
+    
         error_log('Stripe webhook handler completed');
         return rest_ensure_response(['success' => true]);
     }
+
+   /*  private static function handle_invoice_finalized($invoice) {
+        global $wpdb;
+    
+        error_log('Invoice finalized: ' . print_r($invoice, true));
+    
+        $subscription_id = $invoice->subscription ?? null;
+    
+        if (!$subscription_id) {
+            error_log('No subscription ID in finalized invoice.');
+            return;
+        }
+    
+        $updated = $wpdb->update(
+            "{$wpdb->prefix}subscriptions",
+            ['invoice_status' => 'finalized', 'updated_at' => current_time('mysql')],
+            ['stripe_subscription_id' => $subscription_id]
+        );
+    
+        if ($updated === false) {
+            error_log('Failed to update database for finalized invoice: ' . $wpdb->last_error);
+        } else {
+            error_log('Subscription updated for finalized invoice.');
+        }
+    }
+     */
 
     private static function handle_payment_succeeded($invoice) {
         global $wpdb;
@@ -147,7 +184,38 @@ class Stripe_Webhook_Handler {
         }
     }
 
+    
     private static function handle_subscription_created($subscription) {
+        global $wpdb;
+    
+        error_log('Handling subscription created: ' . print_r($subscription, true));
+    
+        // Get the Stripe subscription ID
+        $stripe_subscription_id = $subscription->id;
+    
+        if (!$stripe_subscription_id) {
+            error_log('Stripe subscription ID is missing.');
+            return;
+        }
+    
+        // Get the subscription's status
+        $status = $subscription->status;
+    
+        // Update the subscription status in the database (optional)
+        $updated = $wpdb->update(
+            "{$wpdb->prefix}subscriptions",
+            ['status' => $status, 'updated_at' => current_time('mysql')],
+            ['stripe_subscription_id' => $stripe_subscription_id]
+        );
+    
+        if ($updated === false) {
+            error_log('Failed to update subscription status in database: ' . $wpdb->last_error);
+        } else {
+            error_log('Subscription status updated in database for Stripe subscription ID: ' . $stripe_subscription_id);
+        }
+    }
+
+    /* private static function handle_subscription_created($subscription) {
         global $wpdb;
 
         error_log('Handling subscription created: ' . print_r($subscription, true));
@@ -183,7 +251,7 @@ class Stripe_Webhook_Handler {
         );
 
         error_log("Subscription created in database for Subscription ID: {$subscription->id}");
-    }
+    } */
 
     private static function handle_subscription_updated($subscription) {
         global $wpdb;
@@ -250,4 +318,50 @@ class Stripe_Webhook_Handler {
             error_log("Subscription successfully marked as canceled: {$subscription->id}");
         }
     }
+
+ /*    private static function handle_invoice_created($invoice) {
+        global $wpdb;
+    
+        $subscription_id = $invoice->subscription ?? null;
+    
+        if (!$subscription_id) {
+            error_log('No subscription ID in invoice.');
+            return;
+        }
+    
+        error_log('Invoice created for subscription ID: ' . $subscription_id);
+    
+        // Debug log full invoice data
+        error_log('Full invoice data: ' . print_r($invoice, true));
+    
+        // Verify if the subscription exists in your database
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}subscriptions WHERE stripe_subscription_id = %s",
+            $subscription_id
+        ));
+    
+        if (!$exists) {
+            error_log('Subscription ID not found in database: ' . $subscription_id);
+            return;
+        }
+    
+        $updated = $wpdb->update(
+            "{$wpdb->prefix}subscriptions",
+            [
+                'last_invoice_id' => $invoice->id ?? null,
+                'invoice_status' => $invoice->status ?? null,
+                'invoice_amount' => $invoice->amount_due ?? null,
+                'updated_at' => current_time('mysql'),
+            ],
+            ['stripe_subscription_id' => $subscription_id]
+        );
+    
+        if ($updated === false) {
+            error_log('Failed to update subscription for invoice: ' . $wpdb->last_error);
+        } else {
+            error_log('Subscription updated with invoice ID: ' . $invoice->id);
+        }
+    } */
+    
+    
 }

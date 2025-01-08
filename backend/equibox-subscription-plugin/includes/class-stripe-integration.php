@@ -10,42 +10,114 @@ class Stripe_Integration {
     }
 
     public static function create_stripe_subscription($email, $name, $stripe_plan_id, $payment_method_id) {
+        error_log('Stripe_Integration::create_stripe_subscription called.');
         try {
+            // Set the Stripe API key
             self::set_stripe_api_key();
     
+            // Retrieve or create the Stripe customer
             $customer_id = self::get_or_create_customer($email, $name);
     
             // Attach the payment method to the customer
-            \Stripe\Customer::update($customer_id, [
-                'invoice_settings' => ['default_payment_method' => $payment_method_id],
-            ]);
+            if ($payment_method_id) {
+                \Stripe\Customer::update($customer_id, [
+                    'invoice_settings' => ['default_payment_method' => $payment_method_id],
+                ]);
     
-            $subscription = \Stripe\Subscription::create([
-                'customer' => $customer_id,
-                'items' => [['price' => $stripe_plan_id]],
-                'payment_behavior' => 'default_incomplete',
-                'expand' => ['latest_invoice.payment_intent'],
-                'metadata' => [
-                    'user_email' => $email,
-                ],
-            ]);
+                error_log('Payment method attached to customer: ' . $payment_method_id);
+            } else {
+                throw new Exception('Payment method ID is required.');
+            }
     
+            // Create the subscription within a try-catch block
+            try {
+                $subscription = \Stripe\Subscription::create([
+                    'customer' => $customer_id,
+                    'items' => [['price' => $stripe_plan_id]],
+                    'payment_behavior' => 'default_incomplete', // Requires payment confirmation
+                    'expand' => ['latest_invoice.payment_intent'], // Get client secret for frontend
+                    'metadata' => [
+                        'user_email' => $email, 
+                    ],
+                ]);
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // Log Stripe-specific API errors
+                error_log('Stripe API Error: ' . $e->getMessage());
+                return new WP_Error('stripe_api_error', $e->getMessage(), ['status' => 500]);
+            } catch (\Exception $e) {
+                // Log general errors
+                error_log('General Error during subscription creation: ' . $e->getMessage());
+                return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);
+            }
+    
+            // Validate the latest_invoice and payment_intent
+            if (empty($subscription->latest_invoice) || empty($subscription->latest_invoice->payment_intent)) {
+                error_log('Failed to retrieve payment intent for subscription: ' . $subscription->id);
+                throw new Exception('Payment intent could not be retrieved.');
+            }
+            error_log("Stripe Subscription Creation: ID = " . ($subscription->id ?? 'None'));
+            error_log("Received subscription data: " . print_r($subscription, true));
+            // Return relevant data for the frontend to complete the subscription
             return [
                 'stripe_subscription_id' => $subscription->id,
                 'client_secret' => $subscription->latest_invoice->payment_intent->client_secret,
                 'current_period_end' => $subscription->current_period_end,
             ];
         } catch (\Stripe\Exception\ApiErrorException $e) {
+            // Log Stripe-specific API errors
             error_log('Stripe API Error: ' . $e->getMessage());
             throw new Exception('Failed to create Stripe subscription: ' . $e->getMessage());
         } catch (Exception $e) {
+            // Log general errors
             error_log('General Error: ' . $e->getMessage());
             throw new Exception('Error: ' . $e->getMessage());
         }
     }
     
+    public static function handle_create_subscription(WP_REST_Request $request) {
+        // Extract parameters from the REST API request
+        $params = $request->get_json_params();
+        error_log('Received parameters: ' . print_r($params, true));
+    
+        $email = sanitize_text_field($params['email']);
+        $name = sanitize_text_field($params['name']);
+        $stripe_plan_id = sanitize_text_field($params['stripe_plan_id']);
+        
+        // Add a log to confirm the value of stripe_plan_id
+        error_log('stripe_plan_id received: ' . $stripe_plan_id);
+        
+        if (!$stripe_plan_id) {
+            return new WP_Error('invalid_request', 'Missing stripe_plan_id parameter.', ['status' => 400]);
+        }
+        $payment_method_id = sanitize_text_field($params['payment_method_id']);
+    
+        // Validate required parameters
+        if (!$email || !$name || !$stripe_plan_id || !$payment_method_id) {
+            return new WP_Error('invalid_request', 'Missing required parameters.', ['status' => 400]);
+        }
+    
+        // Call create_stripe_subscription with extracted parameters
+        $result = Stripe_Integration::create_stripe_subscription(
+            $email,
+            $name,
+            $stripe_plan_id,
+            $payment_method_id
+        );
+    
+        // Check for errors
+        if (is_wp_error($result)) {
+            return $result; 
+        }
+    
+        // Return a successful response
+        return rest_ensure_response($result);
+    }
+    
+    
+    
         private static function set_stripe_api_key() {
             $secret_key = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
+            error_log('Stripe API Key Set Successfully');
             if (!$secret_key) {
                 throw new Exception('Stripe secret key is not defined.');
             }
@@ -186,6 +258,9 @@ class Stripe_Integration {
             \Stripe\Customer::update($customer_id, [
                 'invoice_settings' => ['default_payment_method' => $payment_method_id],
             ]);
+
+            error_log('Payment method attached to customer: ' . $payment_method_id);
+
     
             return rest_ensure_response(['message' => 'Payment method attached successfully.']);
         } catch (\Stripe\Exception\ApiErrorException $e) {
@@ -197,7 +272,7 @@ class Stripe_Integration {
         }
     }
     
-    public static function handle_create_subscription($request) {
+/*     public static function handle_create_subscription($request) {
         $params = $request->get_json_params();
         $customer_id = $params['customer_id'];
         $stripe_plan_id = $params['stripe_plan_id'];
@@ -233,7 +308,7 @@ class Stripe_Integration {
         } catch (\Stripe\Exception\ApiErrorException $e) {
             return new WP_Error('stripe_error', $e->getMessage(), ['status' => 500]);
         }
-    }
+    } */
     
 
 
@@ -505,6 +580,31 @@ class Stripe_Integration {
         } catch (\Stripe\Exception\ApiErrorException $e) {
             error_log('Stripe API Error: ' . $e->getMessage());
             throw new Exception('Failed to create Payment Intent: ' . $e->getMessage());
+        }
+    }
+    
+
+    public static function get_subscription_data($stripe_plan_id, $user_id) {
+        try {
+            // Fetch subscription using the plan ID
+            $subscription = \Stripe\Subscription::retrieve([
+                'items' => [['price' => $stripe_plan_id]],
+            ]);
+    
+            if (!$subscription) {
+                throw new Exception('Failed to retrieve subscription from Stripe.');
+            }
+    
+            return [
+                'stripe_subscription_id' => $subscription->id,
+                'current_period_end' => $subscription->current_period_end,
+            ];
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            error_log('Stripe API Error: ' . $e->getMessage());
+            return new WP_Error('stripe_api_error', $e->getMessage(), ['status' => 500]);
+        } catch (\Exception $e) {
+            error_log('General Error: ' . $e->getMessage());
+            return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);
         }
     }
     
