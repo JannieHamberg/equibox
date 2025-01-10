@@ -19,6 +19,7 @@ interface Subscription {
 
 interface Plan {
   id: number;
+  stripe_plan_id: string;
   name: string;
   price: number;
   interval: string;
@@ -30,13 +31,13 @@ export default function UserDashboard() {
   const [subscription, setSubscription] = useState<Subscription | null | undefined>(undefined);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null); // Track selected plan
 
   useEffect(() => {
     fetchUserSubscription();
     fetchAvailablePlans();
   }, []);
 
-  // Fetch the user's current subscription
   const fetchUserSubscription = async () => {
     console.log("Fetching user subscription...");
     try {
@@ -44,19 +45,13 @@ export default function UserDashboard() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
         },
-        credentials: "include", // Send cookies
       });
 
       console.log("Response Status (fetchUserSubscription):", response.status);
 
-      if (response.status === 401) {
-        console.log("Unauthorized - no subscription.");
-        setSubscription(null);
-        return;
-      }
-
-      if (response.status === 404) {
+      if (response.status === 401 || response.status === 404) {
         console.log("No subscription found.");
         setSubscription(null);
         return;
@@ -64,7 +59,6 @@ export default function UserDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error response data:", errorData);
         throw new Error(errorData.message || "Failed to fetch user's subscription.");
       }
 
@@ -72,13 +66,11 @@ export default function UserDashboard() {
       console.log("Fetched subscription data:", data);
       setSubscription(data.data[0]);
     } catch (err) {
-      setSubscription(null); // Ensure null if error occurs
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
       console.error("Error fetching subscription:", err);
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     }
   };
 
-  // Fetch all available subscription plans
   const fetchAvailablePlans = async () => {
     console.log("Fetching available plans...");
     try {
@@ -86,8 +78,8 @@ export default function UserDashboard() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
         },
-        credentials: "include", 
       });
 
       console.log("Response Status (fetchAvailablePlans):", response.status);
@@ -99,41 +91,50 @@ export default function UserDashboard() {
       const data = await response.json();
       console.log("Available plans data received:", data);
 
-      const plansWithImage = data.data.map((plan: Plan) => ({
-        ...plan,
-        image_url: plan.image_url || "/boxar/fallback-image.webp",
-      }));
-
-      setAvailablePlans(plansWithImage);
+      setAvailablePlans(
+        data.data.map((plan: Plan) => ({
+          ...plan,
+          stripe_plan_id: plan.stripe_plan_id, 
+          image_url: plan.image_url || "/boxar/fallback-image.webp",
+        }))
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
       console.error("Error fetching available plans:", err);
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     }
   };
 
-  const handleActivateSubscription = async (planId: number) => {
+  const handleConfirmSubscription = async () => {
+    if (!selectedPlanId) {
+      alert("Välj en prenumerationsbox först.");
+      return;
+    }
+
     try {
       const endpoint = subscription ? "/user/subscription/update" : "/user/subscribe";
       const method = subscription ? "PUT" : "POST";
 
-      console.log("Payload being sent:", JSON.stringify({ plan_id: planId }));
+      console.log("Payload being sent:", JSON.stringify({ plan_id: selectedPlanId }));
 
       const response = await fetch(endpoint, {
         method,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
         },
-        credentials: "include",
-        body: JSON.stringify({ plan_id: planId }),
+        body: JSON.stringify({ plan_id: selectedPlanId }),
       });
 
-      if (!response.ok) throw new Error("Failed to process subscription");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to process subscription.");
+      }
 
       alert("Subscription successfully updated!");
-      fetchUserSubscription(); // Refresh subscription data after update
+      fetchUserSubscription(); // Refresh subscription data
     } catch (err) {
+      console.error("Error confirming subscription:", err);
       setError(err instanceof Error ? err.message : "An unknown error occurred");
-      console.error(err);
     }
   };
 
@@ -149,15 +150,11 @@ export default function UserDashboard() {
     <div className={`mt-40 max-w-max mx-auto p-4 bg-stone-100 ${styles.shadow} ${styles.rounded}`}>
       <h1 className="text-3xl font-bold pl-6 mb-6">Mitt konto</h1>
 
-      {!subscription ? (
-        <>
-          <PickSubscription
-            availablePlans={availablePlans}
-            onSelectPlan={(planId) => {
-              handleActivateSubscription(planId);
-            }}
-          />
-        </>
+      {subscription === null ? (
+        <PickSubscription
+          availablePlans={availablePlans}
+          onSelectPlan={(planId) => setSelectedPlanId(planId)}
+        />
       ) : (
         <div>
           <div className="p-6">
@@ -170,21 +167,13 @@ export default function UserDashboard() {
             <p className={styles.status}>
               Status: {subscription.status === "active" ? "aktiv" : subscription.status}
             </p>
-            <div className={`mt-4 flex space-x-4`}>
-              <button
-                onClick={() => console.log("Cancel Subscription")}
-                className={`px-6 py-2 ${styles["btn-error"]}`}
-              >
-                Avsluta prenumeration
-              </button>
-            </div>
           </div>
 
           <div className={`p-6 mt-6`}>
             <h3 className={`text-xl font-bold mb-4`}>Byt prenumerationsbox</h3>
             <select
-              value={""}
-              onChange={() => console.log("Change Subscription")}
+              value={selectedPlanId || ""}
+              onChange={(e) => setSelectedPlanId(Number(e.target.value))}
               className={`border p-2 rounded w-full`}
             >
               <option value="" disabled>
@@ -196,11 +185,10 @@ export default function UserDashboard() {
                 </option>
               ))}
             </select>
-            <button onClick={() => console.log("Confirm Change")} className="btn mt-2 px-6 py-2">
-              Bekfräfta
+            <button onClick={handleConfirmSubscription} className="btn mt-2 px-6 py-2">
+              Bekräfta
             </button>
           </div>
-
           <div className="flex justify-end">
             <LogoutButton />
           </div>

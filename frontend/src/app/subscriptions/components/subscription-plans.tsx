@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 interface Prenumerationer {
   id: number;
+  stripe_plan_id: string;
   name: string;
   price: number;
   interval: string;
@@ -21,7 +22,7 @@ export default function SubscriptionPlans() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await fetch("/subscriptions/prenumerationer"); // Proxy Route
+        const response = await fetch("/subscriptions/prenumerationer"); 
         if (!response.ok) throw new Error("Failed to fetch subscription plans");
         const data = await response.json();
         setPlans(data.data);

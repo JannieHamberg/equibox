@@ -90,6 +90,11 @@ const nextConfig: NextConfig = {
         source: "/stripe/get-or-create-customer",
         destination: "https://backend.equibox.se/wp-json/stripe/v1/get-or-create-customer",
       },
+      {
+          // Create a subscription in stripe
+          source: "/stripe/create-subscription", 
+          destination: "https://backend.equibox.se/wp-json/stripe/v1/create-subscription",
+        },
     
       
       

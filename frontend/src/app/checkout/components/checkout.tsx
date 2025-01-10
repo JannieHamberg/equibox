@@ -84,6 +84,8 @@ export default function Checkout() {
         router.push("/userprofile");
         return;
       }
+      const parsedPlan = JSON.parse(planData);
+      console.log("Parsed Plan from sessionStorage:", parsedPlan); // Debug log
 
       setSubscriptionPlan(JSON.parse(planData));
     })();
@@ -107,40 +109,43 @@ export default function Checkout() {
 
   const processCheckout = async () => {
     console.log("processCheckout called");
-    if (!stripeCustomerId) {
-      alert("Unable to fetch Stripe customer ID. Please try again.");
-      return;
+
+    if (!stripeCustomerId || clientSecret) {
+        console.log("Skipping processCheckout. Either Stripe customer ID is missing or clientSecret is already set.");
+        return; // Prevent re-fetching if clientSecret is already set
     }
 
     try {
-      if (!subscriptionPlan) throw new Error("No subscription plan selected!");
+        if (!subscriptionPlan) throw new Error("No subscription plan selected!");
 
-      const paymentIntentResponse = await fetch("/stripe/create-client-secret", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          name: userName,
-          amount: subscriptionPlan.price * 100, // Amount in cents
-        }),
-      });
+        const paymentIntentResponse = await fetch("/stripe/create-client-secret", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+                email: userEmail,
+                name: userName,
+                amount: subscriptionPlan.price * 100, // Amount in cents
+            }),
+        });
 
-      if (!paymentIntentResponse.ok) {
-        const errorData = await paymentIntentResponse.json();
-        throw new Error(`Stripe Error: ${errorData.message}`);
-      }
+        if (!paymentIntentResponse.ok) {
+            const errorData = await paymentIntentResponse.json();
+            throw new Error(`Stripe Error: ${errorData.message}`);
+        }
 
-      const paymentIntent = await paymentIntentResponse.json();
-      console.log("Setting clientSecret:", paymentIntent.clientSecret);
-      setClientSecret(paymentIntent.clientSecret);
+        const paymentIntent = await paymentIntentResponse.json();
+        console.log("Setting clientSecret:", paymentIntent.clientSecret);
+        setClientSecret(paymentIntent.clientSecret); // Only set if successfully fetched
     } catch (error) {
-      console.error("Error during checkout process:", error);
-      alert("An error occurred during the checkout process. Please try again.");
+        console.error("Error during checkout process:", error);
+        alert("An error occurred during the checkout process. Please try again.");
     }
-  };
+};
+
+  
 
   if (!subscriptionPlan) {
     return <p>Loading subscription plan...</p>;
@@ -154,7 +159,7 @@ export default function Checkout() {
   return (
     <div className="container mx-auto mt-32 p-4 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Subscribe to Equibox</h1>
-
+  
       <div className="card bg-base-100 shadow-xl p-6 mb-6">
         <h2 className="text-xl font-bold mb-4">Subscription Summary</h2>
         <div className="space-y-2">
@@ -165,9 +170,9 @@ export default function Checkout() {
           </p>
         </div>
       </div>
-
+  
       <div className="card bg-base-100 shadow-xl p-6">
-        {clientSecret && stripeCustomerId ? (
+        {clientSecret ? (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <CheckoutForm
               clientSecret={clientSecret}
@@ -188,4 +193,4 @@ export default function Checkout() {
       </div>
     </div>
   );
-}
+}  

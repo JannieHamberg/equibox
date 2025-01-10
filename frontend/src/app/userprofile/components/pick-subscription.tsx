@@ -27,17 +27,18 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
       try {
         const selectedPlan = availablePlans.find((plan) => plan.id === selectedPlanId);
         if (!selectedPlan) {
+          alert("Vald prenumerationsbox hittades inte.");
           throw new Error("Selected plan not found");
         }
   
-           // Store the selected plan details in sessionStorage
+        // Store the selected plan details in sessionStorage
         sessionStorage.setItem("subscriptionPlan", JSON.stringify(selectedPlan));
         console.log("Subscription plan stored:", selectedPlan);
   
-        // Proceed to checkout since already authenticated 
+        // Redirect to checkout
         router.push("/checkout");
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error activating subscription:", error);
         alert("Ett fel uppstod när prenumerationen skulle aktiveras.");
       }
     } else {
@@ -59,9 +60,12 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
               selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
             }`}
             onClick={() => {
-              setSelectedPlanId(plan.id);
-              onSelectPlan(plan.id); // Notify parent about the selection
+              setSelectedPlanId(plan.id); // Update local state
+              if (onSelectPlan) {
+                onSelectPlan(plan.id); // Notify parent only when necessary
+              }
             }}
+            
           >
             <figure>
             <Image
@@ -90,9 +94,14 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
         ))}
       </div>
       <div className="mt-8 text-end">
-        <button onClick={handleActivate} className="btn btn-neutral">
-          Bekräfta prenumeration
-        </button>
+      <button
+      onClick={handleActivate}
+      className={`btn btn-neutral`}
+      disabled={!selectedPlanId} // Disable if no plan is selected
+    >
+      Bekräfta prenumeration
+    </button>
+
       </div>
     </div>
   );

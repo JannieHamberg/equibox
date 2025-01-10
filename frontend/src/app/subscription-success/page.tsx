@@ -11,7 +11,7 @@ export default function SubscriptionSuccess() {
   }, []);
 
   return (
-    <div className="container mx-auto p-4 max-w-3xl">
+    <div className="container mx-auto mt-32  p-4 max-w-3xl">
       <div className="card bg-base-100 shadow-xl p-8 text-center">
         <h1 className="text-3xl font-bold mb-6">Tack!</h1>
         <div className="space-y-4">

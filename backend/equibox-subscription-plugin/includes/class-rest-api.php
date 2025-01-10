@@ -4,14 +4,19 @@ if (!defined('ARRAY_A')) {
     define('ARRAY_A', 1);
 }
 
-// Include dependencies
 require_once __DIR__ . '/client-secret-handler.php';
 require_once __DIR__ . '/class-stripe-integration.php';
+require_once __DIR__ . '/class-stripe-webhook-handler.php';
+require_once __DIR__ . '/class-product-handler.php';
+require_once __DIR__ . '/class-box-handler.php';
+require_once __DIR__ . '/subscription-admin-handler.php';
+require_once __DIR__ . '/subscription-user-handler.php';
+
 error_log('Stripe_Integration class file loaded.');
 
 // Ensure Stripe_Integration class is initialized
 if (class_exists('Stripe_Integration')) {
-    Stripe_Integration::init(); // Initialize the class if it has an init method
+    Stripe_Integration::init(); 
     error_log('Stripe_Integration class initialized.');
 } else {
     error_log('Stripe_Integration class does not exist!');
@@ -96,7 +101,7 @@ if (class_exists('Stripe_Integration')) {
             '/create-subscription',
             [
                 'methods' => 'POST',
-                'callback' => [Stripe_Integration::class, 'create_subscription'], 
+                'callback' => [Stripe_Integration::class, 'handle_create_subscription'], 
                 'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
                
             ]
@@ -115,7 +120,7 @@ if (class_exists('Stripe_Integration')) {
             '/stripe-webhook',
             [
                 'methods' => 'POST',
-                'callback' => ['Stripe_Handler', 'handle_webhook'],
+                'callback' => ['Stripe_Webhook_Handler', 'handle_webhook'],
                 'permission_callback' => '__return_true',
             ]
         );
