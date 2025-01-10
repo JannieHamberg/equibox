@@ -584,7 +584,7 @@ class Stripe_Integration {
     }
     
 
-    public static function get_subscription_data($stripe_plan_id, $user_id) {
+   /*  public static function get_subscription_data($stripe_plan_id, $user_id) {
         try {
             // Fetch subscription using the plan ID
             $subscription = \Stripe\Subscription::retrieve([
@@ -606,7 +606,29 @@ class Stripe_Integration {
             error_log('General Error: ' . $e->getMessage());
             return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);
         }
+    } */
+
+    public static function get_subscription_data($subscription_id) {
+        try {
+
+            self::set_stripe_api_key();
+            // Retrieve subscription details from Stripe
+            $subscription = \Stripe\Subscription::retrieve($subscription_id);
+    
+            return [
+                'stripe_subscription_id' => $subscription->id,
+                'current_period_end' => $subscription->current_period_end,
+            ];
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            error_log('Stripe API Error: ' . $e->getMessage());
+            return new WP_Error('stripe_api_error', $e->getMessage(), ['status' => 500]);
+        } catch (\Exception $e) {
+            error_log('General Error: ' . $e->getMessage());
+            return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);
+        }
     }
+    
+    
     
     
 }

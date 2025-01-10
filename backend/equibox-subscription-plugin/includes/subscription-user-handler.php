@@ -124,6 +124,7 @@ class Subscription_Handler {
         $user_id = get_current_user_id();
         $plan_id = intval($request->get_param('plan_id'));
     
+        // Validate required parameters
         if (!$user_id || !$plan_id) {
             return new WP_Error('missing_data', 'User ID and Plan ID are required.', ['status' => 400]);
         }
@@ -140,11 +141,33 @@ class Subscription_Handler {
             return new WP_Error('invalid_plan', 'The selected subscription plan does not exist.', ['status' => 404]);
         }
     
-        // Retrieve the subscription from Stripe
-        $stripe_subscription_data = Stripe_Integration::get_subscription_data($plan->stripe_plan_id, $user_id);
+        // Extract parameters from the request
+        $email = sanitize_text_field($request->get_param('email'));
+        $name = sanitize_text_field($request->get_param('name'));
+        $payment_method_id = sanitize_text_field($request->get_param('payment_method_id'));
+    
+        // Log the process
+        error_log("Creating Stripe subscription for user: $user_id, plan: $plan->name");
+    
+        // Create the subscription on Stripe
+        $stripe_subscription_data = Stripe_Integration::create_stripe_subscription(
+            $email,
+            $name,
+            $plan->stripe_plan_id, // Pass the Stripe price ID
+            $payment_method_id
+        );
     
         if (is_wp_error($stripe_subscription_data)) {
-            return $stripe_subscription_data; // Pass Stripe error response to the frontend
+            return $stripe_subscription_data; // Handle Stripe errors
+        }
+    
+        // Extract Stripe subscription data
+        $stripe_subscription_id = $stripe_subscription_data['stripe_subscription_id'] ?? null;
+        $current_period_end = $stripe_subscription_data['current_period_end'] ?? null;
+    
+        if (!$stripe_subscription_id) {
+            error_log('Failed to retrieve Stripe subscription ID.');
+            return new WP_Error('stripe_error', 'Failed to retrieve Stripe subscription ID.', ['status' => 500]);
         }
     
         // Insert subscription into the custom database
@@ -152,18 +175,21 @@ class Subscription_Handler {
             'user_id' => $user_id,
             'plan_id' => $plan_id, // Refers to the ID in subscription_plans
             'status' => 'active',
-            'stripe_subscription_id' => $stripe_subscription_data['stripe_subscription_id'], // From Stripe
+            'stripe_subscription_id' => $stripe_subscription_id, // Stripe subscription ID
             'description' => $plan->description,
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql'),
-            'payment_due_date' => date('Y-m-d H:i:s', $stripe_subscription_data['current_period_end']),
+            'payment_due_date' => date('Y-m-d H:i:s', $current_period_end), // Payment due date from Stripe
         ]);
+    
+        error_log("Subscription inserted into custom database for user: $user_id");
     
         return rest_ensure_response([
             'success' => true,
             'message' => 'Subscription created successfully!',
         ]);
     }
+    
     
     
     

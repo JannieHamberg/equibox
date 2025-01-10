@@ -78,6 +78,9 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
         const errorData = await stripeResponse.json();
         throw new Error(`Stripe Subscription Error: ${errorData.message}`);
       }
+
+      const { stripe_subscription_id } = await stripeResponse.json(); // debugg/capture `stripe_subscription_id`
+      console.log("Stripe Subscription ID:", stripe_subscription_id);
   
       // Create subscription in the custom database
       const customDbResponse = await fetch("/user/subscribe", {
@@ -89,10 +92,19 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
         body: JSON.stringify({
           plan_id: subscriptionPlan.id, // Custom database plan ID
           stripe_plan_id: subscriptionPlan.stripe_plan_id, // Stripe Price ID
+          stripe_subscription_id, // Stripe Subscription ID
           email, // Use email directly
           name: name, 
           payment_method_id: paymentMethodId, 
         }),
+      });
+      console.log("Payload sent to /user/subscribe:", {
+        plan_id: subscriptionPlan.id,
+        stripe_plan_id: subscriptionPlan.stripe_plan_id,
+        stripe_subscription_id,
+        email,
+        name,
+        payment_method_id: paymentMethodId,
       });
   
       if (!customDbResponse.ok) {
