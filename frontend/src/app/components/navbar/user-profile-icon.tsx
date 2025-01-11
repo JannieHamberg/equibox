@@ -34,6 +34,7 @@ export default function UserIcon() {
       <FontAwesomeIcon
         icon={faUser}
         className="h-5 w-5 cursor-pointer text-gray-900"
+        aria-label="Mitt konto"
       />
     </Link>
   );

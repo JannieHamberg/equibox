@@ -205,8 +205,12 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
             />
           </div>
     
-          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-          <button disabled={loading} className={`btn btn-primary w-full ${loading ? "loading" : ""}`}>
+          {errorMessage && <p className="text-red-500" role="alert">{errorMessage}</p>}
+          <button 
+            disabled={loading} 
+            className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
+            aria-label={loading ? "Bearbetar din beställning" : "Bekräfta din beställning"}
+          >
             {loading ? "Processing..." : "Bekräfta"}
           </button>
         </form>

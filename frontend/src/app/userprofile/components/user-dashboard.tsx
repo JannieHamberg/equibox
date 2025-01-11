@@ -40,19 +40,24 @@ export default function UserDashboard() {
 
   const fetchUserSubscription = async () => {
     console.log("Fetching user subscription...");
+    const token = sessionStorage.getItem("authToken");
+    console.log("Current auth token:", token);
+
     try {
       const response = await fetch("/user/subscription", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
+          "Authorization": token ? `Bearer ${token}` : ''
         },
+        credentials: 'include',
       });
 
-      console.log("Response Status (fetchUserSubscription):", response.status);
+      console.log("Response Status:", response.status);
+      console.log("Response Headers:", Object.fromEntries(response.headers));
 
       if (response.status === 401 || response.status === 404) {
-        console.log("No subscription found.");
+        console.log("No subscription found or unauthorized");
         setSubscription(null);
         return;
       }
@@ -66,23 +71,26 @@ export default function UserDashboard() {
       console.log("Fetched subscription data:", data);
       setSubscription(data.data[0]);
     } catch (err) {
-      console.error("Error fetching subscription:", err);
+      console.error("Error:", err);
       setError(err instanceof Error ? err.message : "An unknown error occurred");
     }
   };
 
   const fetchAvailablePlans = async () => {
     console.log("Fetching available plans...");
+    const token = sessionStorage.getItem("authToken");
+    
     try {
       const response = await fetch("/subscriptions/prenumerationer", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
+          "Authorization": token ? `Bearer ${token}` : '',
         },
+        credentials: 'include',
       });
 
-      console.log("Response Status (fetchAvailablePlans):", response.status);
+      console.log("Plans Response Status:", response.status);
 
       if (!response.ok) {
         throw new Error("Failed to fetch available plans");
@@ -99,7 +107,7 @@ export default function UserDashboard() {
         }))
       );
     } catch (err) {
-      console.error("Error fetching available plans:", err);
+      console.error("Error fetching plans with details:", err);
       setError(err instanceof Error ? err.message : "An unknown error occurred");
     }
   };
@@ -147,7 +155,7 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className={`mt-40 max-w-max mx-auto p-4 bg-stone-100 ${styles.shadow} ${styles.rounded}`}>
+    <div className= "mt-40 max-w-max mx-auto p-4 bg-base-100 shadow-2xl rounded-lg">
       <h1 className="text-3xl font-bold pl-6 mb-6">Mitt konto</h1>
 
       {subscription === null ? (
@@ -185,7 +193,7 @@ export default function UserDashboard() {
                 </option>
               ))}
             </select>
-            <button onClick={handleConfirmSubscription} className="btn mt-2 px-6 py-2">
+            <button onClick={handleConfirmSubscription} className="btn mt-2 px-6 py-2" aria-label="Bekräfta prenumeration">
               Bekräfta
             </button>
           </div>

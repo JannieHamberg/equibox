@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  
 
   const handleLogin = async () => {
-    setError(null); // Reset any previous errors
+    setError(null);
     try {
       console.log("Token request initiated", { username, password });
 
@@ -40,6 +41,9 @@ export default function LoginPage() {
       sessionStorage.setItem("userEmail", data.user_email); 
       sessionStorage.setItem("userName", data.user_display_name);
 
+       // Set the cookie
+       document.cookie = `authToken=${data.token}; path=/`;
+
       // Redirect to the dashboard
       console.log("Before redirection:", window.location.href);
       router.push("/userprofile");
@@ -50,39 +54,67 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-60 p-6 bg-white shadow rounded">
-      <h1 className="text-2xl font-bold mb-4">Login</h1>
+    <motion.section 
+      className="py-16 bg-base-100"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      viewport={{ once: true }}
+    >
+      <div className="container mx-auto px-4 mt-32 bg-base-300 shadow-2xl rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="relative h-[650px]">
+            <Image
+              src="/section-img.webp"
+              alt="Person receiving Equibox delivery"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover rounded-lg"
+            />
+          </div>
+          
+          <div className="space-y-6 mx-auto">
+            <p className="text-sm uppercase tracking-wider">Välkommen tillbaka</p>
+            
+            <h2 className="text-4xl font-bold text-primary">
+              Logga in på ditt konto
+            </h2>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-        className="w-full p-2 border border-gray-300 rounded mb-4"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="w-full p-2 border border-gray-300 rounded mb-4"
-      />
-      <button
-        onClick={handleLogin}
-        className="w-full btn text-white p-2"
-      >
-        Login
-      </button>
-      <div className="mt-4 text-center">
-        <p>
-          Har du inget konto?{" "}
-          <a href="/signup" className="text-primary underline">
-            Skapa konto
-          </a>
-        </p>
+            {error && <p className="text-red-500">{error}</p>}
+            
+            <div className="space-y-4 max-w-md">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:border-[var(--color-gold)]"
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:border-[var(--color-gold)]"
+              />
+              <button
+                onClick={handleLogin}
+                className="w-full bg-black text-white px-8 py-3 rounded-md hover:bg-[var(--color-gold)] transition-colors"
+              >
+                Login
+              </button>
+              <div className="text-center mt-4">
+                <p>
+                  Har du inget konto?{" "}
+                  <a href="/signup" className="text-[var(--color-gold)] hover:underline">
+                    Skapa konto
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </motion.section>
   );
 }

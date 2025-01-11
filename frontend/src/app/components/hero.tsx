@@ -23,7 +23,7 @@ export default function HeroHome() {
   }, [images.length]);
 
   return (
-    <section className="mt-24 relative flex w-full bg-white overflow-hidden">
+    <section className="mt-24 relative flex w-full bg-base-100 overflow-hidden">
   {/* Right: Slideshow Section */}
   <div
     className="relative w-full md:w-3/5 h-[500px] md:h-[700px] bg-cover bg-right ml-auto"
