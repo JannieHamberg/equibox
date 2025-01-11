@@ -158,7 +158,7 @@ export default function Checkout() {
 
   return (
     <div className="container mx-auto mt-32 p-4 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Subscribe to Equibox</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Prenumerera på Equibox</h1>
   
       <div className="card bg-base-100 shadow-xl p-6 mb-6">
         <h2 className="text-xl font-bold mb-4">Subscription Summary</h2>
@@ -182,14 +182,19 @@ export default function Checkout() {
               subscriptionPlan={subscriptionPlan}
               authToken={authToken}
             />
+            <div className="mt-10"> <p>Genom att slutföra detta steg skapas ditt abonnemang, och en faktura kommer att skickas till din e-post för betalning.
+          </p>
+      </div>
           </Elements>
         ) : (
           <div className="text-center p-4">
-            <button onClick={processCheckout} className="btn-primary mt-4">
-              Fortsätt till betalning
+            <button onClick={processCheckout} className="btn-accent mt-4">
+              Bekräfta prenumeration
             </button>
           </div>
         )}
+     
+       
       </div>
     </div>
   );
