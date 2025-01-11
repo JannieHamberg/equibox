@@ -1,7 +1,17 @@
 declare global {
   interface Window {
     googleTranslateElementInit?: () => void;
-    google: any; 
+    google?: {
+      translate?: {
+        TranslateElement?: {
+          new (config: {
+            pageLanguage: string;
+            includedLanguages: string;
+            autoDisplay: boolean;
+          }, element: string): void;
+        };
+      };
+    };
   }
 }
 
@@ -19,37 +29,20 @@ export default function GoogleTranslate(): JSX.Element {
       return script;
     };
 
-    window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: 'sv',
-          includedLanguages: 'en,sv',
-          autoDisplay: false,
-        },
-        'google_translate_element'
-      );
-
-      // Prevent scroll and fix dropdown position
-      const observer = new MutationObserver(() => {
-        const dropdown = document.querySelector('.goog-te-menu-frame');
-        if (dropdown) {
-          dropdown.addEventListener('load', () => {
-            const doc = (dropdown as HTMLIFrameElement).contentDocument || (dropdown as HTMLIFrameElement).contentWindow?.document;
-            if (doc) {
-              doc.body.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              });
-            }
-          });
-        }
-      });
-
-      observer.observe(document.body, { childList: true, subtree: true });
+    window.googleTranslateElementInit = function() {
+      if (window.google?.translate?.TranslateElement) {
+        new window.google.translate.TranslateElement(
+          {
+            pageLanguage: 'sv',
+            includedLanguages: 'en,sv',
+            autoDisplay: false,
+          },
+          'google_translate_element'
+        );
+      }
     };
 
     const script = addScript();
-
     return () => {
       document.body.removeChild(script);
       delete window.googleTranslateElementInit;
