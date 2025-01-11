@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import  CustomNavbar from './components/navbar/navbar';
+import Footer from "./components/footer";
+import PageTransition from "./page-transition";
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,7 +33,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CustomNavbar />
-        {children}
+        <PageTransition>{children}</PageTransition>
+        <Footer />
       </body>
     </html>
   );

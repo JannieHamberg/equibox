@@ -123,6 +123,7 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
   
     
       return (
+        
         <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 border rounded shadow-md">
           <h2 className="text-xl font-bold mb-4 text-center">Betalningsuppgifter</h2>
     
@@ -206,7 +207,7 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
     
           {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           <button disabled={loading} className={`btn btn-primary w-full ${loading ? "loading" : ""}`}>
-            {loading ? "Processing..." : "Betala nu"}
+            {loading ? "Processing..." : "Bekräfta"}
           </button>
         </form>
       );

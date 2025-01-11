@@ -3,6 +3,7 @@
 import styles from "../subscriptions.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { motion } from 'framer-motion';
 
 interface Prenumerationer {
   id: number;
@@ -41,49 +42,48 @@ export default function SubscriptionPlans() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="flex items-center justify-end mt-32    ">
-  {/* Title Section */}
-  <div className="flex-shrink-0 lg:text-left 2xl:text-center lg:w-64 2xl:w-fit">
-    <h2 className="text-4xl font-bold text-gray-800">
-      Våra Boxar
-    </h2>
-  </div>
-
-  {/* Cards Section */}
-  <div className="flex justify-end 2xl:justify-center w-full  lg:w-3/4 ">
-  <div className="grid grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] gap-8 p-8 max-w-screen-xl ">
-
-    {plans.map((plan) => (
-      <div
-        key={plan.id}
-        className={`card bg-base-100 shadow-xl ${styles.cardNoRadius} ${styles.cardCustom}`}>
-        <figure>
-          <Image
-            src={plan.image_url || '/boxar/fallback-image.webp'}
-            alt={plan.name}
-            width={300}
-            height={200}
-            style={{ objectFit: "cover" }}
-            className="w-full"
-          />
-        </figure>
-        <div className="card-body">
-          <h2 className="card-title">{plan.name}</h2>
-          <p>{plan.description}</p>
-          <p className="text-lg font-semibold">
-            {plan.price} SEK / {plan.interval}
-          </p>
-          <div className="card-actions justify-end">
-            <button className="btn">Detaljer</button>
+    <motion.section
+      className="py-16 bg-white"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.2 }}
+      viewport={{ once: true, margin: "-200px" }}
+    >
+      <div className="container mx-auto px-4 pt-10">
+        <h2 className="text-3xl font-semibold text-center mb-12">
+          VÅRA BOXAR
+        </h2>
+        <div className="flex justify-center items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`card bg-base-100 shadow-xl ${styles.cardNoRadius} ${styles.cardCustom} max-w-sm`}>
+                <figure>
+                  <Image
+                    src={plan.image_url || '/boxar/fallback-image.webp'}
+                    alt={plan.name}
+                    width={300}
+                    height={200}
+                    style={{ objectFit: "cover" }}
+                    className="w-full"
+                  />
+                </figure>
+                <div className="card-body">
+                  <h2 className="card-title">{plan.name}</h2>
+                  <p>{plan.description}</p>
+                  <p className="text-lg font-semibold">
+                    {plan.price} SEK / månadsvis
+                  </p>
+                  <div className="card-actions justify-end">
+                    <button className="btn">Detaljer</button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    ))}
-  </div>
-  </div>
-</div>
-
+    </motion.section>
   );
-  
-  
 }

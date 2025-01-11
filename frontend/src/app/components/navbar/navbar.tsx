@@ -94,20 +94,22 @@ export default function CustomNavbar() {
             {/* User Profile Icon */}
             <UserIcon />
 
-            {/* Shopping Cart Icon */}
-            <Link href="/cart">
-              <div className="relative">
-                <FontAwesomeIcon
-                  icon={faShoppingCart}
-                  className="h-6 w-6 text-gray-900 cursor-pointer"
-                />
-           {/*      {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs px-1">
-                    {cartCount}
-                  </span>
-                )} */}
+            {/* Shopping Cart Icon with Tooltip */}
+            <div className="relative group">
+              <Link href="/cart">
+                <div className="relative">
+                  <FontAwesomeIcon
+                    icon={faShoppingCart}
+                    className="h-6 w-6 text-gray-900 cursor-pointer"
+                  />
+                </div>
+              </Link>
+              <div className="absolute right-0 w-46 px-2 py-2 bg-[var(--color-dark-grey)] text-white text-xs rounded-md 
+                            opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+                            pointer-events-none -bottom-8 text-center whitespace-nowrap">
+                Minishoppen - kommer snart!
               </div>
-            </Link>
+            </div>
 
             {/* Sidebar Toggle Button */}
             <label className="btn-circle swap swap-rotate">
@@ -140,6 +142,69 @@ export default function CustomNavbar() {
           </div>
         </div>
       </div>
+
+      {/* Sidebar */}
+      <div 
+        className={`fixed top-0 right-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out z-50 pt-20 px-8 shadow-xl ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Close Button */}
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="absolute top-8 right-8 text-gray-900 hover:text-[var(--color-gold)] transition-colors"
+        >
+          <svg
+            className="w-6 h-6"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        <nav className="flex flex-col gap-8">
+          <Link 
+            href="/" 
+            className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            Hem
+          </Link>
+          <Link 
+            href="/about" 
+            className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            Om oss
+          </Link>
+          <Link 
+            href="/signup" 
+            className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            Prenumerera
+          </Link>
+          <Link 
+            href="/contact" 
+            className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            Kontakt
+          </Link>
+        </nav>
+      </div>
+
+      {/* Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
     </div>
   );
 }

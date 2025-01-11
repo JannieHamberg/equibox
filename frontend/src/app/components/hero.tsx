@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from 'next/link';
 
 export default function HeroHome() {
   // Background images array
@@ -45,9 +46,12 @@ export default function HeroHome() {
       <p className="text-gray-600 mb-6">
       Utforska nya produkter och överraskningar för dig och din häst varje månad.
       </p>
-      <button className="cta-btn px-6 py-2 font-semibold text-white bg-black hover:bg-gray-800">
-       Se boxarna
-      </button>
+      <Link 
+        href="/signup" 
+        className="cta-btn px-6 py-2 font-semibold text-white bg-black hover:bg-gray-800 inline-block"
+      >
+        Prenumerera
+      </Link>
     </div>
   </div>
 </section>

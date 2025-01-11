@@ -215,6 +215,8 @@ class Stripe_Webhook_Handler {
         }
     }
 
+    
+
     /* private static function handle_subscription_created($subscription) {
         global $wpdb;
 
