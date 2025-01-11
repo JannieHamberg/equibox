@@ -1,22 +1,22 @@
+declare global {
+  interface Window {
+    googleTranslateElementInit?: () => void;
+    google: any; 
+  }
+}
+
 'use client';
 
 import { useEffect } from 'react';
 
-
-declare global {
-  interface Window {
-    google: any;
-    googleTranslateElementInit?: () => void;
-  }
-}
-
-export default function GoogleTranslate() {
+export default function GoogleTranslate(): JSX.Element {
   useEffect(() => {
     const addScript = () => {
       const script = document.createElement('script');
       script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
       script.async = true;
       document.body.appendChild(script);
+      return script;
     };
 
     window.googleTranslateElementInit = () => {
@@ -24,7 +24,6 @@ export default function GoogleTranslate() {
         {
           pageLanguage: 'sv',
           includedLanguages: 'en,sv',
-          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
           autoDisplay: false,
         },
         'google_translate_element'
@@ -49,9 +48,10 @@ export default function GoogleTranslate() {
       observer.observe(document.body, { childList: true, subtree: true });
     };
 
-    addScript();
+    const script = addScript();
 
     return () => {
+      document.body.removeChild(script);
       delete window.googleTranslateElementInit;
     };
   }, []);
