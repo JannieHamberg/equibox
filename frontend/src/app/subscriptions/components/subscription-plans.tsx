@@ -43,13 +43,13 @@ export default function SubscriptionPlans() {
 
   return (
     <motion.section
-      className="py-16 bg-white"
+      className="py-16 "
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2 }}
       viewport={{ once: true, margin: "-200px" }}
     >
-      <div className="container mx-auto px-4 pt-10">
+      <div className="container mx-auto px-4 pt-10 bg-base-300 shadow-2xl rounded-lg pb-14">
         <h2 className="text-3xl font-semibold text-center mb-12">
           VÅRA BOXAR
         </h2>
@@ -76,7 +76,7 @@ export default function SubscriptionPlans() {
                     {plan.price} SEK / månadsvis
                   </p>
                   <div className="card-actions justify-end">
-                    <button className="btn">Detaljer</button>
+                    <button className="btn" aria-label="Detaljer">Detaljer</button>
                   </div>
                 </div>
               </div>

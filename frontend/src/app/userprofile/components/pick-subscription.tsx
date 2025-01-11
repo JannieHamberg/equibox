@@ -50,13 +50,13 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
   
 
   return (
-    <div className="mt-32 container mx-auto p-4">
+    <div className="mt-32 container mx-auto p-4 ">
       <h1 className="text-3xl font-bold mb-8 text-center">Välj en prenumerationsbox</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
         {availablePlans.map((plan) => (
           <div
             key={plan.id}
-            className={`card bg-base-100 shadow-xl w-full ${
+            className={`card bg-base-100 rounded-lg  w-full ${
               selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
             }`}
             onClick={() => {
@@ -74,6 +74,7 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
               width={300}           
               height={200}         
               className="w-full h-48 object-contain" 
+            
             />
           </figure>
             <div className="card-body">
@@ -85,6 +86,7 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
               <div className="card-actions justify-end">
                 <button
                   className={`btn w-full ${selectedPlanId === plan.id ? "btn-neutral" : "btn-outline"}`}
+                  aria-label="Välj prenumerationsbox"
                 >
                   {selectedPlanId === plan.id ? "Vald" : "Välj"}
                 </button>
@@ -97,6 +99,7 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
       <button
       onClick={handleActivate}
       className={`btn btn-neutral`}
+      aria-label="Bekräfta prenumeration"
       disabled={!selectedPlanId} // Disable if no plan is selected
     >
       Bekräfta prenumeration

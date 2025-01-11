@@ -188,7 +188,7 @@ export default function Checkout() {
           </Elements>
         ) : (
           <div className="text-center p-4">
-            <button onClick={processCheckout} className="btn-accent mt-4">
+            <button onClick={processCheckout} className="btn-accent mt-4" aria-label="Bekräfta prenumeration">
               Bekräfta prenumeration
             </button>
           </div>

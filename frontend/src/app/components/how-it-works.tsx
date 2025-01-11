@@ -32,7 +32,7 @@ export default function HowItWorks() {
 
   return (
     <motion.section 
-    className="py-16 bg-white"
+    className="py-16 "
     initial={{ opacity: 0, y: 50 }}
     whileInView={{ opacity: 1, y: 0 }}
     transition={{ duration: 1.2 }}

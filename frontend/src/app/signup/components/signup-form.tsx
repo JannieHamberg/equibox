@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import styles from "../signup-form.module.css";
-import LoginPage from "@/app/login/components/login";
-
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function SignupForm() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const [showLoginForm, setShowLoginForm] = useState(false); // Toggle between signup and login forms
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,59 +37,93 @@ export default function SignupForm() {
         throw new Error(data.message || "Kunde inte skapa ett konto.");
       }
 
-      // If registration is successful, switch to the login form
       setMessage("Konto skapat framgångsrikt! Logga in med ditt konto.");
       setUsername("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setTimeout(() => setShowLoginForm(true), 1000); 
+      setTimeout(() => router.push('/login'), 1000);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Ett okänt fel inträffade.");
     }
   };
 
-  if (showLoginForm) {
-    return <LoginPage />; // Render the login form 
-  }
-
   return (
-    <form onSubmit={handleSignup} className={styles.signupForm}>
-      <h2>Skapa ett konto</h2>
-      {message && <p className={styles.message}>{message}</p>}
-      <input
-        type="text"
-        placeholder="Användarnamn"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
-      <input
-        type="email"
-        placeholder="E-post"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Lösenord"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Bekräfta lösenord"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        required
-      />
-      <div className={styles.buttonContainer}>
-        <button type="submit" className="btn justify-end">
-          Skapa konto
-        </button>
+    <motion.section 
+      className="py-16 bg-base-100"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      viewport={{ once: true }}
+    >
+      <div className="container mx-auto px-4 mt-32 bg-base-300 shadow-2xl rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="relative h-[650px]">
+            <Image
+              src="/section-img.webp"
+              alt="Person receiving Equibox delivery"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover rounded-lg"
+            />
+          </div>
+          
+          <div className="space-y-6 mx-auto">
+            <p className="text-sm uppercase tracking-wider">Bli medlem</p>
+            
+            <h2 className="text-4xl font-bold text-primary">
+              Skapa ett konto
+            </h2>
+
+            {message && <p className="text-red-500">{message}</p>}
+            
+            <div className="space-y-4 max-w-md">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Användarnamn"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:border-[var(--color-gold)]"
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-post"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:border-[var(--color-gold)]"
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Lösenord"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:border-[var(--color-gold)]"
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Bekräfta lösenord"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:border-[var(--color-gold)]"
+              />
+              <button
+                onClick={handleSignup}
+                className="w-full bg-black text-white px-8 py-3 rounded-md hover:bg-[var(--color-gold)] transition-colors"
+              >
+                Skapa konto
+              </button>
+              <div className="text-center mt-4">
+                <p>
+                  Har du redan ett konto?{" "}
+                  <a href="/login" className="text-[var(--color-gold)] hover:underline">
+                    Logga in
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </form>
+    </motion.section>
   );
 }

@@ -7,6 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./navbar.module.css";
 import UserIcon from "./user-profile-icon";
+import ThemeToggle from "../theme-toggle";
+
 
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -101,6 +103,7 @@ export default function CustomNavbar() {
                   <FontAwesomeIcon
                     icon={faShoppingCart}
                     className="h-6 w-6 text-gray-900 cursor-pointer"
+                    aria-label="Minishoppen kundvagn, se din varukorg(minishoppen kommer snart)."
                   />
                 </div>
               </Link>
@@ -125,6 +128,7 @@ export default function CustomNavbar() {
                 width="32"
                 height="32"
                 viewBox="0 0 512 512"
+                aria-label="Öppna sidomeny"
               >
                 <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
               </svg>
@@ -135,10 +139,15 @@ export default function CustomNavbar() {
                 width="32"
                 height="32"
                 viewBox="0 0 512 512"
+                aria-label="Stäng sidomeny"
               >
                 <polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49" />
               </svg>
             </label>
+
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
@@ -153,6 +162,7 @@ export default function CustomNavbar() {
         <button 
           onClick={() => setIsOpen(false)}
           className="absolute top-8 right-8 text-gray-900 hover:text-[var(--color-gold)] transition-colors"
+          aria-label="Stäng sidomeny"
         >
           <svg
             className="w-6 h-6"
@@ -203,6 +213,7 @@ export default function CustomNavbar() {
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setIsOpen(false)}
+          aria-label="Stäng sidomeny"
         />
       )}
     </div>

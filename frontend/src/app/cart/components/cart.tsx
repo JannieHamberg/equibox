@@ -58,10 +58,10 @@ export default function Cart() {
 
   return (
     <div className="container mx-auto mt-32 p-4 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Your Subscription Box</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Din kundvagn</h1>
       {cartItems.length === 0 ? (
         <div className="card bg-base-100 shadow-xl p-8 text-center">
-          <p className="text-lg">No subscription box selected</p>
+          <p className="text-lg">Kundvagnen är tom</p>
         </div>
       ) : (
         <>
@@ -88,6 +88,7 @@ export default function Cart() {
                   <button 
                     className="btn btn-sm btn-error"
                     onClick={() => handleRemoveItem(item.id)}
+                    aria-label="Ta bort produkt"
                   >
                     Remove
                   </button>
@@ -100,8 +101,9 @@ export default function Cart() {
             <button 
               className="btn btn-primary w-full"
               onClick={handleCheckout}
+              aria-label="Gå vidare till betalning"
             >
-              Subscribe Now
+              Gå vidare till betalning
             </button>
           </div>
         </>

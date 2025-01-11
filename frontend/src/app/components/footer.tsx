@@ -42,7 +42,7 @@ export default function Footer() {
             placeholder="E-postadress"
             className="flex-1 border border-gray-300 px-4 py-2"
           />
-          <button className="bg-black text-white px-6 py-2">
+          <button className="bg-black text-white px-6 py-2" aria-label="Prenumerera">
             Prenumerera
           </button>
         </div>
@@ -66,14 +66,14 @@ export default function Footer() {
           {/* Information Column */}
           <div>
             <h3 className="font-semibold mb-4">Snabblänkar</h3>
-            <ul className="space-y-2 text-white">
-              <li><Link href="/" className="hover:underline">Startsidan</Link></li>
-              <li><Link href="/join" className="hover:underline">Join</Link></li>
-              <li><Link href="/past-boxes" className="hover:underline">Tidigare boxar</Link></li>
-              <li><Link href="/member-shop" className="hover:underline">Member Shop</Link></li>
-              <li><Link href="/login" className="hover:underline">Logga in</Link></li>
-              <li><Link href="/signup" className="hover:underline">Skapa konto</Link></li>
-              <li><Link href="/login" className="hover:underline">Mitt konto</Link></li>
+            <ul role="list" aria-label="Footer navigation">
+              <li role="listitem"><Link href="/" className="hover:underline">Startsidan</Link></li>
+              <li role="listitem"><Link href="/join" className="hover:underline">Bli medlem</Link></li>
+              <li role="listitem"><Link href="/past-boxes" className="hover:underline">Tidigare boxar</Link></li>
+              <li role="listitem"><Link href="/member-shop" className="hover:underline">Member Shop</Link></li>
+              <li role="listitem"><Link href="/login" className="hover:underline">Logga in</Link></li>
+              <li role="listitem"><Link href="/signup" className="hover:underline">Skapa konto</Link></li>
+              <li role="listitem"><Link href="/login" className="hover:underline">Mitt konto</Link></li>
             </ul>
           </div>
 
@@ -107,10 +107,10 @@ export default function Footer() {
                 <div key={index} className="border-b border-white/20">
                   <button
                     onClick={() => toggleAccordion(index)}
-                    className="w-full text-left py-2 flex justify-between items-center"
+                    className="w-full text-left py-2 flex justify-between items-center" aria-label="Öppna eller stäng frågan"
                   >
                     <span>{item.question}</span>
-                    <span className="transform transition-transform duration-200">
+                    <span className="transform transition-transform duration-200" aria-label="Öppna eller stäng frågan">
                       {openAccordion === index ? '−' : '+'}
                     </span>
                   </button>

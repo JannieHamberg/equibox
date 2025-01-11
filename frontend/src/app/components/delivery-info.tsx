@@ -7,15 +7,15 @@ import { motion } from 'framer-motion';
 export default function DeliveryInfo() {
   return (
     <motion.section 
-      className="py-16 bg-[#f5f5f5]"
+      className="py-16"
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
       viewport={{ once: true }}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 bg-base-300 shadow-2xl rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div className="relative h-[600px]">
+          <div className="relative h-[650px]">
             <Image
               src="/happy-horse-rider.webp"
               alt="Person receiving Equibox delivery"
@@ -27,20 +27,20 @@ export default function DeliveryInfo() {
           <div className="space-y-6">
             <p className="text-sm uppercase tracking-wider">För dig och din häst</p>
             
-            <h2 className="text-4xl font-bold">
+            <h2 className="text-4xl font-bold text-accent">
               Vi levererar magi direkt till din dörr
             </h2>
             
-            <p className="text-gray-600">
+            <p className="text-base-content">
               Vem gillar inte att få ett paket fyllt med godsaker för dig och din häst?
             </p>
             
-            <p className="text-gray-600">
+            <p className="text-base-content">
               I varje box, oavsett om du väljer Hobby, Junior eller Competitor, hittar du 5-7 handplockade kvalitetsprodukter som gör hästvardagen både roligare och enklare.
             </p>
             
-            <p className="text-gray-600">
-              För endast ett schysst pris hjälper vi dig att upptäcka de bästa produkterna inom hästvärlden.
+            <p className="text-base-content">
+              För ett riktigt schysst pris hjälper vi dig att upptäcka de bästa produkterna inom hästvärlden.
             </p>
             
             <Link 

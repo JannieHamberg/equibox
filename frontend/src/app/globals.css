@@ -17,10 +17,85 @@
 
   /* Text colors */
   --color-dark-grey: #252525;
+
+  /* Grundläggande färger */
+  --text-color: #666;
+  --background-color: #fff;
+  --heading-color: #333;
+}
+
+
+
+/* Högkontrast-läge */
+@media (prefers-contrast: more) {
+  :root {
+    --text-color: #000;
+    --background-color: #fff;
+    --heading-color: #000;
+  }
+  
+  h1, h2, h3 {
+    color: #000;
+  }
+
+  /* Buttons */
+  .btn, .cta-btn {
+    background-color: #000;
+    color: #fff;
+    border: 2px solid #000;
+  }
+
+  .btn:hover, .cta-btn:hover {
+    background-color: #fff;
+    color: #000;
+  }
+
+  /* Links */
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  a:hover {
+    color: #000;
+    text-decoration: none;
+  }
+
+  /* Form inputs */
+  input, textarea, select {
+    border: 2px solid #000;
+    color: #000;
+    background-color: #fff;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: 2px solid #000;
+  }
+
+  /* Error messages */
+  .text-red-500, .error-message {
+    color: #cc0000;
+    font-weight: bold;
+  }
+
+  /* Navigation elements */
+  nav a, .nav-link {
+    color: #000;
+  }
+
+  /* Labels */
+  label {
+    color: #000;
+  }
+
+  /* Placeholders */
+  ::placeholder {
+    color: #666;
+  }
 }
 
 /* Usage */
-body {
+/* body {
   background-color: var(--color-white);
   color: var(--color-dark-grey);
 }
@@ -28,7 +103,7 @@ body {
 
 h1, h2, h3 {
   color: var(--color-gold-light);
-}
+} */
 
 .btn, .cta-btn {
   background-color: var(--color-gold);
@@ -40,4 +115,55 @@ h1, h2, h3 {
 .btn:hover, .cta-btn:hover {
   background-color: var(--color-dark-grey); 
   transform: scale(1.05); 
+}
+
+/* Google Translate widget styling */
+.goog-te-gadget {
+  width: auto !important;
+  color: black !important;
+  font-family: inherit !important;
+  position: relative !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-right: 32px !important;
+}
+
+.goog-te-gadget-simple {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  line-height: 2rem !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+.goog-te-menu-frame {
+  position: fixed !important;
+  right: 32px !important;
+  left: auto !important;
+  top: auto !important;
+  bottom: 40px !important;
+  transform: none !important;
+}
+
+.goog-te-menu-value {
+  color: black !important;
+  text-decoration: none !important;
+}
+
+.goog-te-menu-value span {
+  border: none !important;
+  color: black !important;
+}
+
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+.goog-te-gadget img {
+  display: none !important;
+}
+
+.goog-te-menu-value:hover {
+  text-decoration: none !important;
 }
