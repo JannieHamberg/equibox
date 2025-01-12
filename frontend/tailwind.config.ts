@@ -25,7 +25,7 @@ export default {
           "neutral": "#252525",
           "base-100": "#ffffff",
           "base-200": "#f5f5f5",
-          "base-300": "#e5e5e5",
+          "base-300": "#F0EEE6",
           "base-content": "#252525",
         },
         dark: {

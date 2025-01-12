@@ -50,61 +50,63 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
   
 
   return (
-    <div className="mt-32 container mx-auto p-4 ">
-      <h1 className="text-3xl font-bold mb-8 text-center">Välj en prenumerationsbox</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
-        {availablePlans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`card bg-base-100 rounded-lg  w-full ${
-              selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
-            }`}
-            onClick={() => {
-              setSelectedPlanId(plan.id); // Update local state
-              if (onSelectPlan) {
-                onSelectPlan(plan.id); // Notify parent only when necessary
-              }
-            }}
-            
-          >
-            <figure>
-            <Image
-              src={plan.image_url} 
-              alt={plan.name}       
-              width={300}           
-              height={200}         
-              className="w-full h-48 object-contain" 
-            
-            />
-          </figure>
-            <div className="card-body">
-              <h2 className="card-title">{plan.name}</h2>
-              <p>{plan.description}</p>
-              <p className="font-bold text-sm">
-                {plan.price} SEK / {plan.interval === "monthly" ? "månadsvis" : plan.interval}
-              </p>
-              <div className="card-actions justify-end">
-                <button
-                  className={`btn w-full ${selectedPlanId === plan.id ? "btn-neutral" : "btn-outline"}`}
-                  aria-label="Välj prenumerationsbox"
-                >
-                  {selectedPlanId === plan.id ? "Vald" : "Välj"}
-                </button>
+    <div className="container mx-auto px-4">
+      <div className="max-w-[1280px] mx-auto mt-32">
+        <h1 className="text-3xl font-bold mb-8 text-center">Välj en prenumerationsbox</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
+          {availablePlans.map((plan) => (
+            <div
+              key={plan.id}
+              className={`card bg-base-100 rounded-lg  w-full ${
+                selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
+              }`}
+              onClick={() => {
+                setSelectedPlanId(plan.id); // Update local state
+                if (onSelectPlan) {
+                  onSelectPlan(plan.id); // Notify parent only when necessary
+                }
+              }}
+              
+            >
+              <figure>
+              <Image
+                src={plan.image_url} 
+                alt={plan.name}       
+                width={300}           
+                height={200}         
+                className="w-full h-48 object-contain" 
+              
+              />
+            </figure>
+              <div className="card-body">
+                <h2 className="card-title">{plan.name}</h2>
+                <p>{plan.description}</p>
+                <p className="font-bold text-sm">
+                  {plan.price} SEK / {plan.interval === "monthly" ? "månadsvis" : plan.interval}
+                </p>
+                <div className="card-actions justify-end">
+                  <button
+                    className={`btn w-full ${selectedPlanId === plan.id ? "btn-neutral" : "btn-outline"}`}
+                    aria-label="Välj prenumerationsbox"
+                  >
+                    {selectedPlanId === plan.id ? "Vald" : "Välj"}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 text-end">
-      <button
-      onClick={handleActivate}
-      className={`btn btn-neutral`}
-      aria-label="Bekräfta prenumeration"
-      disabled={!selectedPlanId} // Disable if no plan is selected
-    >
-      Bekräfta prenumeration
-    </button>
+          ))}
+        </div>
+        <div className="mt-8 text-end">
+        <button
+        onClick={handleActivate}
+        className={`btn btn-neutral`}
+        aria-label="Bekräfta prenumeration"
+        disabled={!selectedPlanId} // Disable if no plan is selected
+      >
+        Bekräfta prenumeration
+      </button>
 
+        </div>
       </div>
     </div>
   );

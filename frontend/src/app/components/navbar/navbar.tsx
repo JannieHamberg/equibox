@@ -103,14 +103,14 @@ export default function CustomNavbar() {
                   <FontAwesomeIcon
                     icon={faShoppingCart}
                     className="h-6 w-6 text-gray-900 cursor-pointer"
-                    aria-label="Minishoppen kundvagn, se din varukorg(minishoppen kommer snart)."
+                    aria-label="Member Shop kundvagn, se din varukorg(Member Shop kommer snart)."
                   />
                 </div>
               </Link>
               <div className="absolute right-0 w-46 px-2 py-2 bg-[var(--color-dark-grey)] text-white text-xs rounded-md 
                             opacity-0 group-hover:opacity-100 transition-opacity duration-200 
                             pointer-events-none -bottom-8 text-center whitespace-nowrap">
-                Minishoppen - kommer snart!
+                Member Shop - kommer snart!
               </div>
             </div>
 

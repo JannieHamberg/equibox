@@ -45,7 +45,7 @@ export default function HowItWorks() {
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="text-center relative">
+            <div key={index} className="text-left relative">
               <span className="absolute -top-4 left-0 text-2xl font-bold flex items-center justify-center w-12 h-12 rounded-full bg-[var(--color-gold-light)] text-white">
                 {step.step}
               </span>
