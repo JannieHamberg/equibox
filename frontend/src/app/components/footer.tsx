@@ -65,8 +65,8 @@ export default function Footer() {
 
           {/* Information Column */}
           <div>
-            <h3 className="font-semibold mb-4">Snabblänkar</h3>
-            <ul role="list" aria-label="Footer navigation">
+            <h3 className="font-semibold mb-4 text-white">Snabblänkar</h3>
+            <ul role="list" className="text-white" aria-label="Footer navigation">
               <li role="listitem"><Link href="/" className="hover:underline">Startsidan</Link></li>
               <li role="listitem"><Link href="/join" className="hover:underline">Bli medlem</Link></li>
               <li role="listitem"><Link href="/past-boxes" className="hover:underline">Tidigare boxar</Link></li>
@@ -79,7 +79,7 @@ export default function Footer() {
 
           {/* Contact Column */}
           <div>
-            <h3 className="font-semibold mb-4">Kontakt</h3>
+            <h3 className="font-semibold mb-4 text-white">Kontakt</h3>
             <ul className="space-y-2 text-white">
               <li>
                 <a href="mailto:kundservice@equibox.se" className="hover:underline">
@@ -101,7 +101,7 @@ export default function Footer() {
 
           {/* FAQ Column */}
           <div>
-            <h3 className="font-semibold mb-4">Vanliga frågor</h3>
+            <h3 className="font-semibold mb-4 text-white">Vanliga frågor</h3>
             <div className="space-y-2 text-white">
               {faqItems.map((item, index) => (
                 <div key={index} className="border-b border-white/20">

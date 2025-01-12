@@ -24,7 +24,7 @@ export default function DeliveryInfo() {
             />
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-6 max-w-[480px]">
             <p className="text-sm uppercase tracking-wider">För dig och din häst</p>
             
             <h2 className="text-4xl font-bold text-accent">

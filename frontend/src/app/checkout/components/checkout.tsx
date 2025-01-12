@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./checkoutform";
+import SubscriptionBreadcrumbs from "@/app/components/subscription-breadcrumbs";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -157,45 +158,52 @@ export default function Checkout() {
   console.log("stripeCustomerId:", stripeCustomerId);
 
   return (
-    <div className="container mx-auto mt-32 p-4 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Prenumerera på Equibox</h1>
+    <>
+      <SubscriptionBreadcrumbs />
+      <div className="container mx-auto px-4">
+        <div className="max-w-[1280px] mx-auto mt-32">
+          <h1 className="text-3xl font-bold mb-6 text-center">Prenumerera på Equibox</h1>
   
-      <div className="card bg-base-100 shadow-xl p-6 mb-6">
-        <h2 className="text-xl font-bold mb-4">Subscription Summary</h2>
-        <div className="space-y-2">
-          <p className="text-lg">{subscriptionPlan.name}</p>
-          <p className="text-gray-600">{subscriptionPlan.description}</p>
-          <p className="text-lg font-semibold">
-            {subscriptionPlan.price} SEK / {subscriptionPlan.interval}
-          </p>
+          <div className="max-w-[600px] mx-auto">
+            <div className="card bg-base-100 shadow-xl p-6 mb-6">
+              <h2 className="text-xl font-bold mb-4">Subscription Summary</h2>
+              <div className="space-y-2">
+                <p className="text-lg">{subscriptionPlan.name}</p>
+                <p className="text-gray-600">{subscriptionPlan.description}</p>
+                <p className="text-lg font-semibold">
+                  {subscriptionPlan.price} SEK / {subscriptionPlan.interval}
+                </p>
+              </div>
+            </div>
+  
+            <div className="card bg-base-100 shadow-xl p-6">
+              {clientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <CheckoutForm
+                    clientSecret={clientSecret}
+                    email={userEmail}
+                    name={userName}
+                    stripeCustomerId={stripeCustomerId}
+                    subscriptionPlan={subscriptionPlan}
+                    authToken={authToken}
+                  />
+                  <div className="mt-10"> <p>Genom att slutföra detta steg skapas ditt abonnemang, och en faktura kommer att skickas till din e-post för betalning.
+                  </p>
+              </div>
+                </Elements>
+              ) : (
+                <div className="text-center p-4">
+                  <button onClick={processCheckout} className="btn-accent mt-4" aria-label="Bekräfta prenumeration">
+                    Bekräfta prenumeration
+                  </button>
+                </div>
+              )}
+           
+           
+            </div>
+          </div>
         </div>
       </div>
-  
-      <div className="card bg-base-100 shadow-xl p-6">
-        {clientSecret ? (
-          <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <CheckoutForm
-              clientSecret={clientSecret}
-              email={userEmail}
-              name={userName}
-              stripeCustomerId={stripeCustomerId}
-              subscriptionPlan={subscriptionPlan}
-              authToken={authToken}
-            />
-            <div className="mt-10"> <p>Genom att slutföra detta steg skapas ditt abonnemang, och en faktura kommer att skickas till din e-post för betalning.
-          </p>
-      </div>
-          </Elements>
-        ) : (
-          <div className="text-center p-4">
-            <button onClick={processCheckout} className="btn-accent mt-4" aria-label="Bekräfta prenumeration">
-              Bekräfta prenumeration
-            </button>
-          </div>
-        )}
-     
-       
-      </div>
-    </div>
+    </>
   );
 }  
