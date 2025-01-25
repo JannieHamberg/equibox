@@ -6,6 +6,9 @@ import { useState } from "react";
 
 export default function Footer() {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
+  const [email, setEmail] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+
 
   const faqItems = [
     {
@@ -30,23 +33,59 @@ export default function Footer() {
     setOpenAccordion(openAccordion === index ? null : index);
   };
 
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    try {
+      const response = await fetch("https://backend.equibox.se/wp-json/custom-mailpoet/v1/add-subscriber", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          lists: [4], 
+        }),
+      });
+  
+      const data = await response.json();
+      console.log(data);
+  
+      if (response.ok) {
+        setMessage("Du har prenumererat framgångsrikt!");
+      } else {
+        setMessage("Det gick inte att prenumerera. Försök igen.");
+      }
+    } catch (error) {
+      console.error("Subscription Error:", error);
+      setMessage("Ett oväntat fel inträffade. Försök igen senare.");
+    }
+  };
+  
+  
+
   return (
     <footer className="bg-[var(--color-dark-grey)] py-12 mt-20">
       {/* Email Subscription Section */}
       <div className="text-center mb-12">
         <h2 className="text-2xl font-semibold mb-2">Prenumerera på vårt nyhetsbrev!</h2>
         <p className="text-gray-300 mb-4">Var först med att ta del av aktuella erbjudanden och de senaste nyheterna.</p>
-        <div className="flex justify-center gap-2 max-w-md mx-auto px-4">
+        <form onSubmit={handleSubscribe} className="flex justify-center gap-2 max-w-md mx-auto px-4">
           <input
             type="email"
             placeholder="E-postadress"
             className="flex-1 border border-gray-300 px-4 py-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
           <button className="bg-black text-white px-6 py-2" aria-label="Prenumerera">
             Prenumerera
           </button>
-        </div>
+        </form>
+        {message && <p className="text-white mt-4">{message}</p>}
       </div>
+
 
       {/* Main Footer Content */}
       <div className="container mx-auto px-4">

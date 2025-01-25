@@ -11,6 +11,7 @@ require_once __DIR__ . '/class-product-handler.php';
 require_once __DIR__ . '/class-box-handler.php';
 require_once __DIR__ . '/subscription-admin-handler.php';
 require_once __DIR__ . '/subscription-user-handler.php';
+require_once __DIR__ . '/class-mailpoet-handler.php';
 
 error_log('Stripe_Integration class file loaded.');
 
@@ -353,6 +354,13 @@ if (class_exists('Stripe_Integration')) {
             },
         ]);
 
+        // Mailpoet newsletter subscriber route
+       
+            register_rest_route('custom-mailpoet/v1', '/add-subscriber', [
+                'methods' => 'POST',
+                'callback' => ['MailPoet_Subscriber_Handler', 'add_subscriber'],
+                'permission_callback' => '__return_true',
+            ]);       
 
       
     }
