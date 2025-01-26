@@ -171,14 +171,14 @@ export default function CustomNavbar() {
             className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            Hem
+            Startsida
           </Link>
           <Link 
-            href="/about" 
+            href="/userprofile" 
             className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            Om oss
+            Mitt Konto
           </Link>
           <Link 
             href="/signup" 
@@ -188,11 +188,11 @@ export default function CustomNavbar() {
             Prenumerera
           </Link>
           <Link 
-            href="/contact" 
+            href="/member-shop" 
             className="text-xl text-gray-900 hover:text-[var(--color-gold)] transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            Kontakt
+            Medlemsbutiken
           </Link>
         </nav>
       </div>
