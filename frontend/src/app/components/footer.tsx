@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Footer() {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [email, setEmail] = useState<string>('');
   const [message, setMessage] = useState<string>('');
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const faqItems = [
     {
@@ -61,14 +61,31 @@ export default function Footer() {
       setMessage("Ett oväntat fel inträffade. Försök igen senare.");
     }
   };
-  
-  
+
+  // Function to check login status
+  const checkLoginStatus = () => {
+    const token = sessionStorage.getItem("authToken");
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const isTokenExpired = payload.exp * 1000 < Date.now();
+      return !isTokenExpired;
+    } catch (err) {
+      console.error("Invalid token", err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    setIsLoggedIn(checkLoginStatus());
+  }, []);
 
   return (
     <footer className="bg-[var(--color-dark-grey)] py-8 md:py-12 mt-20">
       {/* Email Subscription Section */}
       <div className="text-center mb-8 md:mb-12 px-4 md:px-8">
-        <h2 className="text-xl md:text-2xl font-semibold mb-2">Prenumerera på vårt nyhetsbrev!</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-2 text-white">Prenumerera på vårt nyhetsbrev!</h2>
         <p className="text-gray-300 mb-4 text-sm md:text-base">Var först med att ta del av aktuella erbjudanden och de senaste nyheterna.</p>
         <form onSubmit={handleSubscribe} className="flex flex-col md:flex-row justify-center gap-2 max-w-md mx-auto">
           <input
@@ -106,12 +123,15 @@ export default function Footer() {
             <h3 className="font-semibold mb-4 text-white text-lg">Snabblänkar</h3>
             <ul role="list" className="text-white space-y-2 md:space-y-1" aria-label="Footer navigation">
               <li role="listitem"><Link href="/" className="hover:underline">Startsidan</Link></li>
-              <li role="listitem"><Link href="/join" className="hover:underline">Bli medlem</Link></li>
               <li role="listitem"><Link href="/past-boxes" className="hover:underline">Tidigare boxar</Link></li>
               <li role="listitem"><Link href="/member-shop" className="hover:underline">Member Shop</Link></li>
               <li role="listitem"><Link href="/login" className="hover:underline">Logga in</Link></li>
               <li role="listitem"><Link href="/signup" className="hover:underline">Skapa konto</Link></li>
-              <li role="listitem"><Link href="/login" className="hover:underline">Mitt konto</Link></li>
+              <li role="listitem">
+                <Link href={isLoggedIn ? "/userprofile" : "/login"} className="hover:underline">
+                  Mitt konto
+                </Link>
+              </li>
             </ul>
           </div>
 

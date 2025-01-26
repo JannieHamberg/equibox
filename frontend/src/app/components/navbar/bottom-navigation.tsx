@@ -29,19 +29,19 @@ export default function BottomNavigation() {
 
   return (
     <div className="btm-nav md:hidden z-50">
-      <Link href="/" className="text-gray-900">
-        <FontAwesomeIcon icon={faHome} className="h-5 w-5" />
-        <span className="btm-nav-label">Hem</span>
+      <Link href="/" className="text-base-content">
+        <FontAwesomeIcon icon={faHome} className="h-5 w-5 text-base-content" />
+        <span className="btm-nav-label text-base-content">Hem</span>
       </Link>
       
-      <Link href="/member-shop" className="text-gray-900">
-        <FontAwesomeIcon icon={faShoppingBag} className="h-5 w-5" />
-        <span className="btm-nav-label">Member Shop</span>
+      <Link href="/member-shop" className="text-base-content">
+        <FontAwesomeIcon icon={faShoppingBag} className="h-5 w-5 text-base-content" />
+        <span className="btm-nav-label text-base-content">Member Shop</span>
       </Link>
 
-      <Link href={isLoggedIn ? "/userprofile" : "/login"} className="text-gray-900">
-        <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
-        <span className="btm-nav-label">Konto</span>
+      <Link href={isLoggedIn ? "/userprofile" : "/login"} className="text-base-content">
+        <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-base-content" />
+        <span className="btm-nav-label text-base-content">Konto</span>
       </Link>
     </div>
   );

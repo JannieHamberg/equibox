@@ -38,15 +38,15 @@ export default function HowItWorks() {
     transition={{ duration: 1.2 }}
     viewport={{ once: true, margin: "-200px" }}
     >
-      <div className="container mx-auto px-4 pt-10">
-        <h2 className="text-3xl font-semibold text-center mb-12">
+      <div className="container mx-auto px-4 pt-8">
+        <h2 className="text-2xl md:text-3xl font-semibold text-center mb-12 text-base-content">
           SÅ FUNGERAR DET
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {steps.map((step, index) => (
             <div key={index} className="text-left relative">
-              <span className="absolute -top-4 left-0 text-2xl font-bold flex items-center justify-center w-12 h-12 rounded-full bg-[var(--color-gold-light)] text-white">
+              <span className="absolute -top-4 left-0 text-xl md:text-2xl font-bold flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--color-gold-light)] text-white">
                 {step.step}
               </span>
               <div className="flex justify-center mb-6 h-[100px]">
@@ -58,8 +58,8 @@ export default function HowItWorks() {
                   className="w-auto h-auto object-contain"
                 />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-              <p className="text-gray-600 text-sm">{step.description}</p>
+              <h3 className="text-xl font-semibold mb-3 text-base-content">{step.title}</h3>
+              <p className="text-base-content text-sm">{step.description}</p>
             </div>
           ))}
         </div>
