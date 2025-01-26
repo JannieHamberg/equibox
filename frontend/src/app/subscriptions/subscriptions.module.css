@@ -20,3 +20,33 @@
     }
   }
   
+/* Swiper*/
+.swiperNavigation :global(.swiper-button-next),
+.swiperNavigation :global(.swiper-button-prev) {
+  color: #666 !important;
+  background: rgba(255, 255, 255, 0.6);
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50%;
+  top: 50%;
+}
+
+.swiperNavigation :global(.swiper-button-next) {
+  right: 0px;
+}
+
+.swiperNavigation :global(.swiper-button-prev) {
+  left: 0px;
+}
+
+.swiperNavigation :global(.swiper-button-next::after),
+.swiperNavigation :global(.swiper-button-prev::after) {
+  font-size: 28px !important;
+}
+
+.swiperNavigation :global(.swiper-button-disabled) {
+  opacity: 0.35 !important;
+  cursor: auto;
+  pointer-events: none;
+}
+  

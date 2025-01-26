@@ -161,8 +161,8 @@ export default function Checkout() {
     <>
       <SubscriptionBreadcrumbs />
       <div className="container mx-auto px-4">
-        <div className="max-w-[1280px] mx-auto mt-32">
-          <h1 className="text-3xl font-bold mb-6 text-center">Prenumerera på Equibox</h1>
+        <div className="max-w-[1280px] mx-auto mt-16">
+          <h1 className="text-lg md:text-3xl font-bold mb-6 text-left md:text-center">Prenumerera på Equibox</h1>
   
           <div className="max-w-[600px] mx-auto">
             <div className="card bg-base-100 shadow-xl p-6 mb-6">

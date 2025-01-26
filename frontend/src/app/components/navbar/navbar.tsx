@@ -76,7 +76,7 @@ export default function CustomNavbar() {
 
       {/* Navbar */}
       <div
-        className={`navbar ${styles["navbar-shadow"]} bg-white fixed top-8 w-full z-40 px-8`}
+        className={`navbar ${styles["navbar-shadow"]} bg-white fixed top-8 w-full z-40 px-4 md:px-8`}
       >
         <div className="flex items-center justify-between w-full">
           {/* Left Side: Logo */}
@@ -84,15 +84,15 @@ export default function CustomNavbar() {
             <Image
               src="/small-nav-logo-gray.svg"
               alt="Equibox Logo"
-              width={150}
-              height={100}
+              width={120}
+              height={80}
               priority
-              className="h-auto w-auto"
+              className="h-auto w-auto md:w-[150px]"
             />
           </Link>
 
           {/* Right Side: Icons */}
-          <div className="flex text-gray-900 gap-4 items-center">
+          <div className="flex text-gray-900 gap-2 md:gap-4 items-center">
             {/* User Profile Icon */}
             <UserIcon />
 
@@ -102,7 +102,7 @@ export default function CustomNavbar() {
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faShoppingCart}
-                    className="h-6 w-6 text-gray-900 cursor-pointer"
+                    className="h-5 w-5 md:h-6 md:w-6 text-gray-900 cursor-pointer"
                     aria-label="Member Shop kundvagn, se din varukorg(Member Shop kommer snart)."
                   />
                 </div>
@@ -115,7 +115,7 @@ export default function CustomNavbar() {
             </div>
 
             {/* Sidebar Toggle Button */}
-            <label className="btn-circle swap swap-rotate">
+            <label className="btn-circle swap swap-rotate scale-75 md:scale-100">
               <input
                 type="checkbox"
                 checked={isOpen}
@@ -145,7 +145,7 @@ export default function CustomNavbar() {
               </svg>
             </label>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center  scale-75 md:scale-100">
               <ThemeToggle />
             </div>
           </div>

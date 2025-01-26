@@ -10,10 +10,16 @@
 .scrolltext-container {
   overflow: hidden;
   background-color: #b99955;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   white-space: nowrap;
   display: flex;
   /* margin-top: 1.5rem; */
+}
+
+@media (min-width: 768px) {
+  .scrolltext-container {
+    padding: 0.5rem 0;
+  }
 }
 
 .scrolltext {
@@ -24,6 +30,12 @@
 
 .scrolltext span {
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 0.875rem;
   margin-right: 13rem; 
+}
+
+@media (min-width: 768px) {
+  .scrolltext span {
+    font-size: 1.25rem;
+  }
 }

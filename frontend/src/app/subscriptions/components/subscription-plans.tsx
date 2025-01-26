@@ -5,6 +5,10 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion } from 'framer-motion';
 import SubscriptionDetailsModal from './subscription-details-modal';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 interface Prenumerationer {
   id: number;
@@ -57,51 +61,65 @@ export default function SubscriptionPlans() {
   return (
     <>
       <motion.section
-        className="py-16 "
+        className="py-6 md:py-16"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.2 }}
         viewport={{ once: true, margin: "-200px" }}
       >
-        <div className="container mx-auto px-4 pt-10 bg-base-300 shadow-2xl rounded-lg pb-14">
-          <h2 className="text-3xl font-semibold text-center mb-12">
+        <div className="container mx-auto px-4 pt-6 md:pt-10 bg-base-300 shadow-2xl rounded-lg pb-8 md:pb-14">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center mb-6 md:mb-12">
             VÅRA BOXAR
           </h2>
-          <div className="flex justify-center items-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
+          <div className={`relative ${styles.swiperNavigation}`}>
+            <Swiper
+              modules={[Navigation]}
+              navigation
+              spaceBetween={32}
+              slidesPerView={1}
+              breakpoints={{
+                768: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 3,
+                }
+              }}
+              className="px-8"
+            >
               {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className={`card bg-base-100 shadow-xl ${styles.cardNoRadius} ${styles.cardCustom} max-w-sm`}>
-                  <figure>
-                    <Image
-                      src={plan.image_url || '/boxar/fallback-image.webp'}
-                      alt={plan.name}
-                      width={300}
-                      height={200}
-                      style={{ objectFit: "cover" }}
-                      className="w-full"
-                    />
-                  </figure>
-                  <div className="card-body">
-                    <h2 className="card-title">{plan.name}</h2>
-                    <p>{plan.description}</p>
-                    <p className="text-lg font-semibold">
-                      {plan.price} SEK / månadsvis
-                    </p>
-                    <div className="card-actions justify-end">
-                      <button 
-                        className="btn" 
-                        aria-label="Detaljer"
-                        onClick={() => handleOpenModal(plan)}
-                      >
-                        Detaljer
-                      </button>
+                <SwiperSlide key={plan.id}>
+                  <div className={`card bg-base-100 shadow-xl ${styles.cardNoRadius} ${styles.cardCustom} max-w-sm mx-auto`}>
+                    <figure className="h-[200px] md:h-[250px]">
+                      <Image
+                        src={plan.image_url || '/boxar/fallback-image.webp'}
+                        alt={plan.name}
+                        width={300}
+                        height={250}
+                        style={{ objectFit: "contain" }}
+                        className="w-full h-full"
+                      />
+                    </figure>
+                    <div className="card-body p-4 md:p-6">
+                      <h2 className="card-title text-lg md:text-xl">{plan.name}</h2>
+                      <p className="text-sm md:text-base">{plan.description}</p>
+                      <p className="text-base md:text-lg font-semibold">
+                        {plan.price} SEK / månadsvis
+                      </p>
+                      <div className="card-actions justify-end">
+                        <button 
+                          className="btn btn-sm md:btn-md" 
+                          aria-label="Detaljer"
+                          onClick={() => handleOpenModal(plan)}
+                        >
+                          Detaljer
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         </div>
       </motion.section>
