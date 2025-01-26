@@ -10,7 +10,7 @@ export default function UserIcon() {
 
   // Function to check login status
   const checkLoginStatus = () => {
-    const token = localStorage.getItem("authToken"); // Retrieve JWT token from localStorage
+    const token = sessionStorage.getItem("authToken");
     if (!token) return false;
 
     try {
