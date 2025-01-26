@@ -37,7 +37,7 @@ export default function MemberShopLayout() {
   return (
     <div className="container mx-auto px-4">
       <div className="max-w-[1280px] mx-auto mt-32">
-        <h1 className="text-3xl font-bold text-center mb-12">Välkommen till medlemsbutiken</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-12 text-base-content">Välkommen till medlemsbutiken</h1>
         
         {/* Categories Section */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-12">
@@ -59,7 +59,7 @@ export default function MemberShopLayout() {
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">{category.items}</p>
+              <p className="text-sm text-base-content">{category.items}</p>
             </div>
           ))}
         </div>
@@ -71,7 +71,7 @@ export default function MemberShopLayout() {
             {/* Filter Header */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Filter</h2>
-              <button className="text-sm text-gray-500">Reset</button>
+              <button className="text-sm text-base-content">Reset</button>
             </div>
 
             {/* Availability Filter */}
@@ -105,7 +105,7 @@ export default function MemberShopLayout() {
                   <input type="range" min="0" max="1000" className="range" step="100" />
                   <div className="flex justify-between text-xs px-2">
                     <span>0 kr</span>
-                    <span>1000 kr</span>
+                    <span>10.000 kr</span>
                   </div>
                 </div>
               </div>
@@ -116,7 +116,7 @@ export default function MemberShopLayout() {
           <div className="flex-1">
             {/* Sort Controls */}
             <div className="flex justify-between items-center mb-6">
-              <span className="text-sm">0 produkter</span>
+              <span className="text-sm text-base-content">0 produkter</span>
               <div className="flex items-center gap-4">
                 <select className="select select-bordered select-sm">
                   <option>Datum, nyast först</option>
