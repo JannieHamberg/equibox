@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 
 export default function HeroHome() {
@@ -15,6 +15,7 @@ export default function HeroHome() {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const nextImageRef = useRef<HTMLImageElement | null>(null);
 
   // Preload images
   useEffect(() => {
@@ -39,6 +40,15 @@ export default function HeroHome() {
     preloadImages();
   }, []);
 
+  // Preload next image before transition
+  useEffect(() => {
+    if (!imagesLoaded) return;
+
+    const nextIndex = (currentImageIndex + 1) % images.length;
+    nextImageRef.current = new Image();
+    nextImageRef.current.src = images[nextIndex];
+  }, [currentImageIndex, imagesLoaded, images]);
+
   useEffect(() => {
     if (!imagesLoaded) return;
 
@@ -59,7 +69,7 @@ export default function HeroHome() {
         className="relative w-full md:w-3/5 h-[400px] md:h-[500px] lg:h-[700px] bg-cover bg-center lg:bg-right ml-auto"
         style={{
           backgroundImage: `url(${images[currentImageIndex]})`,
-          transition: "background-image 0.5s ease-in-out",
+          transition: "background-image 0.8s ease-in-out",
         }}
       >
         {/* Overlay for Darken Effect */}
