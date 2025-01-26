@@ -156,7 +156,7 @@ export default function UserDashboard() {
 
   return (
     <div className= "mt-40 max-w-max mx-auto p-4 bg-base-100 shadow-2xl rounded-lg">
-      <h1 className="text-3xl font-bold pl-6 mb-6">Mitt konto</h1>
+       <h1 className="text-3xl font-bold pl-6 mb-2 md:mb-6">Mitt konto</h1>
 
       {subscription === null ? (
         <PickSubscription

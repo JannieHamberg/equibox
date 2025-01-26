@@ -1,14 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Allow external images
+  transpilePackages: ['swiper'],
   images: {
+    domains: ['localhost', 'res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "i.ibb.co", // Allow images from i.ibb.co
+        hostname: "i.ibb.co",
         port: "",
-        pathname: "/**", // Allow all paths
+        pathname: "/**",
       },
     ],
   },

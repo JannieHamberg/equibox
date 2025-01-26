@@ -56,29 +56,31 @@ export default function SignupForm() {
       transition={{ duration: 0.8 }}
       viewport={{ once: true }}
     >
-      <div className="max-w-[1280px] mx-auto mt-32">
+      <div className="max-w-[1280px] mx-auto">
         <div className="bg-base-300 shadow-2xl rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="relative h-[650px]">
-              <Image
-                src="/section-img4.webp"
-                alt="Person receiving Equibox delivery"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover rounded-lg"
-              />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-12 items-center">
+            <div className="px-2 py-2 lg:p-0 mb-2 lg:mb-0">
+              <div className="relative h-[300px] md:h-[500px] lg:h-[650px] w-full">
+                <Image
+                  src="/section-img4.webp"
+                  alt="Person receiving Equibox delivery"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-fill md:object-cover md:object-top lg:object-center rounded-md"
+                />
+              </div>
             </div>
             
-            <div className="space-y-6 mx-auto">
-              <p className="text-sm uppercase tracking-wider">Bli medlem</p>
+            <div className="space-y-4 md:space-y-6 mx-auto p-4 md:p-0 w-full">
+              <p className="text-sm uppercase tracking-wider mb-1 md:mb-4 px-4 md:pl-4 lg:pl-0">BLI MEDLEM</p>
               
-              <h2 className="text-4xl font-bold text-primary">
+              <h2 className="text-2xl md:text-4xl font-bold text-primary mt-1 md:mt-4 px-4 md:pl-4 lg:pl-0">
                 Skapa ett konto
               </h2>
 
-              {message && <p className="text-red-500">{message}</p>}
+              {message && <p className="text-blue-500 px-4">{message}</p>}
               
-              <div className="space-y-4 max-w-md">
+              <div className="space-y-4 w-full px-4">
                 <input
                   type="text"
                   value={username}

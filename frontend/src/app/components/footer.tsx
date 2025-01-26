@@ -65,12 +65,12 @@ export default function Footer() {
   
 
   return (
-    <footer className="bg-[var(--color-dark-grey)] py-12 mt-20">
+    <footer className="bg-[var(--color-dark-grey)] py-8 md:py-12 mt-20">
       {/* Email Subscription Section */}
-      <div className="text-center mb-12">
-        <h2 className="text-2xl font-semibold mb-2">Prenumerera på vårt nyhetsbrev!</h2>
-        <p className="text-gray-300 mb-4">Var först med att ta del av aktuella erbjudanden och de senaste nyheterna.</p>
-        <form onSubmit={handleSubscribe} className="flex justify-center gap-2 max-w-md mx-auto px-4">
+      <div className="text-center mb-8 md:mb-12 px-4 md:px-8">
+        <h2 className="text-xl md:text-2xl font-semibold mb-2">Prenumerera på vårt nyhetsbrev!</h2>
+        <p className="text-gray-300 mb-4 text-sm md:text-base">Var först med att ta del av aktuella erbjudanden och de senaste nyheterna.</p>
+        <form onSubmit={handleSubscribe} className="flex flex-col md:flex-row justify-center gap-2 max-w-md mx-auto">
           <input
             type="email"
             placeholder="E-postadress"
@@ -79,33 +79,32 @@ export default function Footer() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <button className="bg-black text-white px-6 py-2" aria-label="Prenumerera">
-            Prenumerera
+          <button className="bg-black text-white px-6 py-2 w-full md:w-auto" aria-label="Prenumerera">
+            Få nyheter 
           </button>
         </form>
         {message && <p className="text-white mt-4">{message}</p>}
       </div>
 
-
       {/* Main Footer Content */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo Column */}
-          <div className="flex items-center justify-start h-20 ">
+          <div className="flex items-center justify-center md:justify-start h-20">
             <Image
               src="/favicon-logo/favicon-gold.webp"
               alt="Equibox Logo"
-              width={150}
-              height={100}
+              width={120}
+              height={80}
               priority
-              className="h-auto w-auto"
+              className="h-auto w-auto md:w-[150px]"
             />
           </div>
 
           {/* Information Column */}
-          <div>
-            <h3 className="font-semibold mb-4 text-white">Snabblänkar</h3>
-            <ul role="list" className="text-white" aria-label="Footer navigation">
+          <div className="text-center md:text-left">
+            <h3 className="font-semibold mb-4 text-white text-lg">Snabblänkar</h3>
+            <ul role="list" className="text-white space-y-2 md:space-y-1" aria-label="Footer navigation">
               <li role="listitem"><Link href="/" className="hover:underline">Startsidan</Link></li>
               <li role="listitem"><Link href="/join" className="hover:underline">Bli medlem</Link></li>
               <li role="listitem"><Link href="/past-boxes" className="hover:underline">Tidigare boxar</Link></li>
@@ -117,8 +116,8 @@ export default function Footer() {
           </div>
 
           {/* Contact Column */}
-          <div>
-            <h3 className="font-semibold mb-4 text-white">Kontakt</h3>
+          <div className="text-center md:text-left">
+            <h3 className="font-semibold mb-4 text-white text-lg">Kontakt</h3>
             <ul className="space-y-2 text-white">
               <li>
                 <a href="mailto:kundservice@equibox.se" className="hover:underline">
@@ -139,17 +138,18 @@ export default function Footer() {
           </div>
 
           {/* FAQ Column */}
-          <div>
-            <h3 className="font-semibold mb-4 text-white">Vanliga frågor</h3>
+          <div className="text-center md:text-left">
+            <h3 className="font-semibold mb-4 text-white text-lg">Vanliga frågor</h3>
             <div className="space-y-2 text-white">
               {faqItems.map((item, index) => (
                 <div key={index} className="border-b border-white/20">
                   <button
                     onClick={() => toggleAccordion(index)}
-                    className="w-full text-left py-2 flex justify-between items-center" aria-label="Öppna eller stäng frågan"
+                    className="w-full text-left py-2 flex justify-between items-center text-sm md:text-base"
+                    aria-label="Öppna eller stäng frågan"
                   >
                     <span>{item.question}</span>
-                    <span className="transform transition-transform duration-200" aria-label="Öppna eller stäng frågan">
+                    <span className="transform transition-transform duration-200">
                       {openAccordion === index ? '−' : '+'}
                     </span>
                   </button>
