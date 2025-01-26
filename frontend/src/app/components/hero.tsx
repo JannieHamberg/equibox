@@ -14,13 +14,43 @@ export default function HeroHome() {
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Preload images
+  useEffect(() => {
+    const preloadImages = async () => {
+      const imagePromises = images.map((src) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = src;
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      });
+
+      try {
+        await Promise.all(imagePromises);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error('Error preloading images:', error);
+      }
+    };
+
+    preloadImages();
+  }, []);
 
   useEffect(() => {
+    if (!imagesLoaded) return;
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [imagesLoaded, images.length]);
+
+  if (!imagesLoaded) {
+    return <div className="mt-24 relative flex w-full bg-white h-[300px] md:h-[500px] lg:h-[700px]" />;
+  }
 
   return (
     <section className="mt-24 relative flex w-full bg-base-100 overflow-hidden">

@@ -79,9 +79,9 @@ export default function LoginPage() {
             
             {/* Form content */}
             <div className="space-y-4 md:space-y-6 mx-auto p-4 md:p-0 w-full">
-              <p className="text-sm uppercase tracking-wider mb-1 md:mb-4 md:pl-4 lg:pl-0">Välkommen tillbaka</p>
+              <p className="text-sm uppercase tracking-wider mb-1 md:mb-4 px-4 md:pl-4 lg:pl-0">Välkommen tillbaka</p>
               
-              <h2 className="text-2xl md:text-4xl font-bold text-primary mt-1 md:mt-4 md:pl-4 lg:pl-0">
+              <h2 className="text-2xl md:text-4xl font-bold text-primary mt-1 md:mt-4 px-4 md:pl-4 lg:pl-0">
                 Logga in på ditt konto
               </h2>
 
