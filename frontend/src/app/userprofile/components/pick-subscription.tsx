@@ -2,20 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-interface Plan {
-  id: number;
-  name: string;
-  price: number;
-  interval: string;
-  description: string;
-  image_url: string;
-}
-
-interface PickSubscriptionProps {
-  availablePlans: Plan[];
-  onSelectPlan: (planId: number) => void;
-}
+import { PickSubscriptionProps } from '@/types/subscription';
 
 export default function PickSubscription({ availablePlans, onSelectPlan }: PickSubscriptionProps) {
   const router = useRouter();

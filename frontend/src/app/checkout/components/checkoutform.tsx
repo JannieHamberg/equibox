@@ -3,29 +3,14 @@
 import React, { useState } from "react";
 import { CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
-
-interface CheckoutFormProps {
-  clientSecret: string;
-  email: string;
-  name: string;
-  stripeCustomerId: string;
-  subscriptionPlan: {
-    id: number;
-    name: string;
-    price: number;
-    interval: string;
-    stripe_plan_id: string;
-    description?: string;
-  };
-  authToken: string;
-}
+import { CheckoutFormProps } from '@/types/checkout';
 
 export default function CheckoutForm({ clientSecret, email, name, /* stripeCustomerId, */ subscriptionPlan, authToken }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
 
-  const [cardholderName, setCardholderName] = useState<string>(""); // State for cardholder name
+  const [cardholderName, setCardholderName] = useState<string>(""); 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -45,8 +30,8 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
         payment_method: {
           card: cardNumberElement,
           billing_details: {
-            email, // Use email directly if it's the prop
-            name: cardholderName, // Use the cardholder name from the input field
+            email,
+            name: cardholderName, 
           },
         },
       });
@@ -59,7 +44,7 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
       console.log("Payment Method ID:", paymentMethodId);
       console.log("stripe_plan_id:", subscriptionPlan.stripe_plan_id);
 
-      // Directly send payment method to create subscription
+      // Send payment method to create subscription
       const stripeResponse = await fetch("/stripe/create-subscription", {
         method: "POST",
         headers: {
@@ -67,10 +52,10 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
           Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
-          email, // Use email directly if it's the prop
-          name: cardholderName, // Pass the cardholder name
-          stripe_plan_id: subscriptionPlan.stripe_plan_id, // Stripe price/plan ID
-          payment_method_id: paymentMethodId, // Payment method for Stripe
+          email, 
+          name: cardholderName,
+          stripe_plan_id: subscriptionPlan.stripe_plan_id, 
+          payment_method_id: paymentMethodId, 
         }),
       });
   
@@ -79,7 +64,7 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
         throw new Error(`Stripe Subscription Error: ${errorData.message}`);
       }
 
-      const { stripe_subscription_id } = await stripeResponse.json(); // debugg/capture `stripe_subscription_id`
+      const { stripe_subscription_id } = await stripeResponse.json(); // debugg
       console.log("Stripe Subscription ID:", stripe_subscription_id);
   
       // Create subscription in the custom database
@@ -93,7 +78,7 @@ export default function CheckoutForm({ clientSecret, email, name, /* stripeCusto
           plan_id: subscriptionPlan.id, // Custom database plan ID
           stripe_plan_id: subscriptionPlan.stripe_plan_id, // Stripe Price ID
           stripe_subscription_id, // Stripe Subscription ID
-          email, // Use email directly
+          email, 
           name: name, 
           payment_method_id: paymentMethodId, 
         }),

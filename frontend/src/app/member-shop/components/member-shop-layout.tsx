@@ -3,24 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faList, faGrip } from "@fortawesome/free-solid-svg-icons";
+import { faList, faGrip, faInfoCircle, faCartPlus } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from '@/app/context/CartContext';
-
-interface ShopProduct {
-  id: number;
-  image_url: string;
-  title: string;
-  description: string;
-  price: number;
-  category: string;
-  created_at: string;
-}
-
-interface Category {
-  title: string;
-  slug: string;
-  image_url: string; 
-}
+import { ShopProduct, Category } from '@/types/shop';
 
 export default function MemberShopLayout() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -31,7 +16,8 @@ export default function MemberShopLayout() {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortOrder, setSortOrder] = useState<string>('newest');
-  const { updateCartCount } = useCart();
+  const { updateCartCount, addToCart, setIsMinicartOpen } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<ShopProduct | null>(null);
 
   // Fetch categories 
   useEffect(() => {
@@ -132,11 +118,15 @@ export default function MemberShopLayout() {
   };
 
   const handleAddToCart = (product: ShopProduct) => {
-    const existingCart = localStorage.getItem('shopCart');
-    const cartItems = existingCart ? JSON.parse(existingCart) : [];
-    cartItems.push(product);
-    localStorage.setItem('shopCart', JSON.stringify(cartItems));
+    addToCart({ ...product, quantity: 1 });
     updateCartCount();
+    setIsMinicartOpen(true);
+  };
+
+  const openProductModal = (product: ShopProduct) => {
+    setSelectedProduct(product);
+    const modal = document.getElementById('product_modal') as HTMLDialogElement;
+    if (modal) modal.showModal();
   };
 
   return (
@@ -268,42 +258,65 @@ export default function MemberShopLayout() {
             ) : products.length > 0 ? (
               <div className={`
                 ${viewMode === 'grid' 
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' 
+                  ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
                   : 'flex flex-col gap-4'
                 }
               `}>
                 {sortProducts(products, sortOrder).map((product) => (
                   <div 
                     key={product.id} 
-                    className={`
-                      bg-base-100 shadow-xl rounded-lg overflow-hidden flex flex-col
-                      ${viewMode === 'list' ? 'flex-row' : ''}
-                    `}
+                    className={`relative group ${
+                      viewMode === 'list' 
+                        ? 'flex gap-4 border-b pb-4'
+                        : ''
+                    }`}
                   >
-                    <div className={`
-                      ${viewMode === 'list' ? 'w-1/3' : 'w-full'}
-                    `}>
+                    <div className={`relative ${
+                      viewMode === 'list' 
+                        ? 'w-48 flex-shrink-0'
+                        : ''
+                    }`}>
                       <img
                         src={product.image_url}
                         alt={product.title}
-                        className="w-full h-48 object-cover"
+                        className={`${
+                          viewMode === 'list'
+                            ? 'w-48 h-48 object-cover'
+                            : 'w-full aspect-square object-cover'
+                        }`}
                       />
+                      {/* Info icon with tooltip - lighter grey color */}
+                      <button 
+                        onClick={() => openProductModal(product)}
+                        className="absolute top-2 left-2 text-gray-400 hover:text-primary transition-colors tooltip"
+                        data-tip="Detaljer"
+                        aria-label="Product information"
+                      >
+                        <FontAwesomeIcon icon={faInfoCircle} className="h-5 w-5" />
+                      </button>
                     </div>
-                    <div className={`
-                      p-4 flex flex-col justify-between h-full
-                      ${viewMode === 'list' ? 'w-2/3' : 'w-full'}
-                    `}>
+                    
+                    <div className={`${
+                      viewMode === 'list'
+                        ? 'flex-1 flex flex-col justify-between'
+                        : 'mt-3 space-y-1'
+                    }`}>
                       <div>
-                        <h3 className="text-lg font-semibold">{product.title}</h3>
-                        <p className="text-gray-600 mt-2">{product.description}</p>
+                        <h3 className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
+                          {product.title}
+                        </h3>
+                        <p className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
+                          {product.price} kr
+                        </p>
                       </div>
-                      <div className="mt-auto">
-                        <p className="text-lg font-bold mb-2">{product.price} kr</p>
+                      <div className={`flex ${viewMode === 'list' ? 'justify-start' : 'justify-end'} px-2`}>
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="btn btn-primary btn-sm"
+                          className="text-base-content hover:text-primary transition-colors tooltip"
+                          data-tip="Lägg i kundvagn"
+                          aria-label="Add to cart"
                         >
-                          Lägg i kundvagn
+                          <FontAwesomeIcon icon={faCartPlus} className="h-5 w-5" />
                         </button>
                       </div>
                     </div>
@@ -316,6 +329,32 @@ export default function MemberShopLayout() {
           </div>
         </div>
       </div>
+
+      {/* Product Modal */}
+      <dialog id="product_modal" className="modal">
+        <div className="modal-box">
+          {selectedProduct && (
+            <>
+              <img
+                src={selectedProduct.image_url}
+                alt={selectedProduct.title}
+                className="w-full aspect-square object-cover mb-4"
+              />
+              <h3 className="font-bold text-lg mb-2">{selectedProduct.title}</h3>
+              <p className="py-2">{selectedProduct.description}</p>
+              <p className="text-lg font-medium">{selectedProduct.price} kr</p>
+              <div className="modal-action">
+                <form method="dialog">
+                  <button className="btn">Stäng</button>
+                </form>
+              </div>
+            </>
+          )}
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }
