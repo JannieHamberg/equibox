@@ -1,13 +1,4 @@
-interface SubscriptionDetailsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  plan: {
-    name: string;
-    description: string;
-    price: number;
-    image_url: string;
-  } | null;
-}
+import { SubscriptionDetailsModalProps } from '@/types/subscription';
 
 export default function SubscriptionDetailsModal({ isOpen, onClose, plan }: SubscriptionDetailsModalProps) {
   if (!plan) return null;

@@ -9,17 +9,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
-interface Prenumerationer {
-  id: number;
-  stripe_plan_id: string;
-  name: string;
-  price: number;
-  interval: string;
-  description: string;
-  image_url: string;
-  product_id: number;
-}
+import { Prenumerationer } from '@/types/subscription';
 
 export default function SubscriptionPlans() {
   const [plans, setPlans] = useState<Prenumerationer[]>([]);

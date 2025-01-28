@@ -6,17 +6,9 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./checkoutform";
 import SubscriptionBreadcrumbs from "@/app/components/subscription-breadcrumbs";
+import { SubscriptionPlan } from '@/types/checkout';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-interface SubscriptionPlan {
-  id: number;
-  name: string;
-  price: number;
-  interval: string;
-  stripe_plan_id: string;
-  description?: string;
-}
 
 export default function Checkout() {
   const router = useRouter();

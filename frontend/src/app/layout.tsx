@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Forum } from "next/font/google";
 import "./globals.css";
 import  CustomNavbar from './components/navbar/navbar';
 import Footer from "./components/footer";
 import PageTransition from "./page-transition";
 import GoogleTranslate from './components/google-translate';
 import { CartProvider } from './context/CartContext';
+import Minicart from "./minicart/components/minicart";
+
 
 const inter = Inter({ subsets: ["latin"] });
+const forum = Forum({ 
+  weight: '400',
+  subsets: ['latin'],
+});
 
 export const metadata: Metadata = {
   title: "Equibox - Prenumerationsbox för häst & ryttare",
@@ -37,12 +43,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="sv">
-      <body className={inter.className}>
+      <body className={forum.className}>
         <CartProvider>
           <CustomNavbar />
           <PageTransition>{children}</PageTransition>
           <Footer />
           <GoogleTranslate />
+          <Minicart />
         </CartProvider>
       </body>
     </html>

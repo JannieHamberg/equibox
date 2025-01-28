@@ -14,7 +14,7 @@ import { useCart } from '@/app/context/CartContext';
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const { cartCount } = useCart();
+  const { cartCount, setIsMinicartOpen } = useCart();
 
   // Slideshow text for the top bar
   const topBarTexts = [
@@ -64,7 +64,10 @@ export default function CustomNavbar() {
                 <FontAwesomeIcon
                   icon={faShoppingCart}
                   className="h-5 w-5 md:h-6 md:w-6 text-gray-900 cursor-pointer"
-                  aria-label="Member Shop kundvagn"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsMinicartOpen(true);
+                  }}
                 />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">

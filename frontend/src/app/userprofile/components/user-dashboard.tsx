@@ -3,33 +3,11 @@ import styles from "../userprofile.module.css";
 import { useEffect, useState } from "react";
 import LogoutButton from "./logout-btn";
 import PickSubscription from "./pick-subscription";
-
-interface Subscription {
-  id: number;
-  user_id: number;
-  plan_id: number;
-  name: string;
-  price: number;
-  interval: string;
-  status: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Plan {
-  id: number;
-  stripe_plan_id: string;
-  name: string;
-  price: number;
-  interval: string;
-  description: string;
-  image_url: string;
-}
+import { Subscription, SubscriptionPlan } from '@/types/subscription';
 
 export default function UserDashboard() {
   const [subscription, setSubscription] = useState<Subscription | null | undefined>(undefined);
-  const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+  const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null); // Track selected plan
 
@@ -100,7 +78,7 @@ export default function UserDashboard() {
       console.log("Available plans data received:", data);
 
       setAvailablePlans(
-        data.data.map((plan: Plan) => ({
+        data.data.map((plan: SubscriptionPlan) => ({
           ...plan,
           stripe_plan_id: plan.stripe_plan_id, 
           image_url: plan.image_url || "/boxar/fallback-image.webp",
