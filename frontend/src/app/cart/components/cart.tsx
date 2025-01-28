@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useCart } from '@/app/context/CartContext';
+import Image from 'next/image';
 
 interface CartItem {
   id: number;
@@ -71,10 +71,12 @@ export default function Cart() {
                 <div className="flex items-start gap-4">
                   {item.image_url && (
                     <div className="w-24 h-24 relative">
-                      <img 
+                      <Image 
                         src={item.image_url} 
                         alt={item.title}
-                        className="object-cover rounded-lg"
+                        width={500}
+                        height={300}
+                        className="object-cover"
                       />
                     </div>
                   )}
