@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faHome, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faHome, faShoppingBag, faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
+import { useCart } from '@/app/context/CartContext';
 
 export default function BottomNavigation() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { cartCount } = useCart();
 
   // Function to check login status
   const checkLoginStatus = () => {
@@ -36,7 +38,17 @@ export default function BottomNavigation() {
       
       <Link href="/member-shop" className="text-base-content">
         <FontAwesomeIcon icon={faShoppingBag} className="h-5 w-5 text-base-content" />
-        <span className="btm-nav-label text-base-content">Member Shop</span>
+        <span className="btm-nav-label text-base-content">Shop</span>
+      </Link>
+
+      <Link href="/cart" className="text-base-content relative">
+        <FontAwesomeIcon icon={faShoppingCart} className="h-5 w-5 text-base-content" />
+        {cartCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-primary text-primary-content rounded-full w-5 h-5 text-xs flex items-center justify-center">
+            {cartCount}
+          </span>
+        )}
+        <span className="btm-nav-label text-base-content">Varukorg</span>
       </Link>
 
       <Link href={isLoggedIn ? "/userprofile" : "/login"} className="text-base-content">

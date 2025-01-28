@@ -137,7 +137,6 @@ export default function MemberShopLayout() {
     cartItems.push(product);
     localStorage.setItem('shopCart', JSON.stringify(cartItems));
     updateCartCount();
-    alert('Produkt tillagd i kundvagnen!');
   };
 
   return (
