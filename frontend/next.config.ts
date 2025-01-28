@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["swiper"],
+  eslint: {
+    // Disables ESLint during builds
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {

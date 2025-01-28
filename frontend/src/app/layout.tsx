@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Forum } from "next/font/google";
+import { Forum } from "next/font/google";
 import "./globals.css";
 import  CustomNavbar from './components/navbar/navbar';
 import Footer from "./components/footer";
@@ -8,8 +8,6 @@ import GoogleTranslate from './components/google-translate';
 import { CartProvider } from './context/CartContext';
 import Minicart from "./minicart/components/minicart";
 
-
-const inter = Inter({ subsets: ["latin"] });
 const forum = Forum({ 
   weight: '400',
   subsets: ['latin'],

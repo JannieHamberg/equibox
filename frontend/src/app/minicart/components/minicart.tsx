@@ -6,7 +6,7 @@ import { faPlus, faMinus, faTimes, faCartPlus } from '@fortawesome/free-solid-sv
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { ShopProduct, CartItem } from '@/types/shop';
+import { ShopProduct } from '@/types/shop';
 
 export default function Minicart() {
   const { 

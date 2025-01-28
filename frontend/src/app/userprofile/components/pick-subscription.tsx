@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plan, PickSubscriptionProps } from '@/types/subscription';
+import { PickSubscriptionProps } from '@/types/subscription';
 
 export default function PickSubscription({ availablePlans, onSelectPlan }: PickSubscriptionProps) {
   const router = useRouter();

@@ -265,13 +265,25 @@ export default function MemberShopLayout() {
                 {sortProducts(products, sortOrder).map((product) => (
                   <div 
                     key={product.id} 
-                    className="relative group"
+                    className={`relative group ${
+                      viewMode === 'list' 
+                        ? 'flex gap-4 border-b pb-4'
+                        : ''
+                    }`}
                   >
-                    <div className="relative">
+                    <div className={`relative ${
+                      viewMode === 'list' 
+                        ? 'w-48 flex-shrink-0'
+                        : ''
+                    }`}>
                       <img
                         src={product.image_url}
                         alt={product.title}
-                        className="w-full aspect-square object-cover"
+                        className={`${
+                          viewMode === 'list'
+                            ? 'w-48 h-48 object-cover'
+                            : 'w-full aspect-square object-cover'
+                        }`}
                       />
                       {/* Info icon with tooltip - lighter grey color */}
                       <button 
@@ -284,10 +296,20 @@ export default function MemberShopLayout() {
                       </button>
                     </div>
                     
-                    <div className="mt-3 space-y-1">
-                      <h3 className="text-sm font-medium text-center">{product.title}</h3>
-                      <p className="text-sm font-medium text-center">{product.price} kr</p>
-                      <div className="flex justify-end px-2">
+                    <div className={`${
+                      viewMode === 'list'
+                        ? 'flex-1 flex flex-col justify-between'
+                        : 'mt-3 space-y-1'
+                    }`}>
+                      <div>
+                        <h3 className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
+                          {product.title}
+                        </h3>
+                        <p className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
+                          {product.price} kr
+                        </p>
+                      </div>
+                      <div className={`flex ${viewMode === 'list' ? 'justify-start' : 'justify-end'} px-2`}>
                         <button 
                           onClick={() => handleAddToCart(product)}
                           className="text-base-content hover:text-primary transition-colors tooltip"
