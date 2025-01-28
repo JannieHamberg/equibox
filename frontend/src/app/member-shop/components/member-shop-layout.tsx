@@ -24,6 +24,7 @@ interface Category {
 
 export default function MemberShopLayout() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<ShopProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
@@ -56,7 +57,7 @@ export default function MemberShopLayout() {
       setLoading(true);
       try {
         const url = new URL("https://backend.equibox.se/wp-json/membershop/v1/filtered-products");
-
+        
         if (selectedCategory) {
           url.searchParams.append("category", selectedCategory);
         }
@@ -71,7 +72,11 @@ export default function MemberShopLayout() {
         }
         const data = await res.json();
         
-        // Filter products client-side 
+        // Store all products when no category is selected
+        if (!selectedCategory) {
+          setAllProducts(data);
+        }
+        
         const filteredData = data.filter((product: ShopProduct) => 
           product.price >= priceRange.min && 
           product.price <= priceRange.max
@@ -101,7 +106,7 @@ export default function MemberShopLayout() {
 
   // count products per category
   const getProductCountForCategory = (categorySlug: string) => {
-    return products.filter(product => product.category === categorySlug).length;
+    return allProducts.filter(product => product.category === categorySlug).length;
   };
 
   // price filtering
