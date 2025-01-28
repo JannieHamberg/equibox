@@ -360,13 +360,12 @@ class Subscription_Handler {
     // Get all subscription plans (public)
     public static function get_all_subscription_plans($request) {
         global $wpdb;
-    
-        // Ensure table name is prefixed properly
         $table_name = $wpdb->prefix . 'subscription_plans';
-        error_log("Fetching data from table: " . $table_name);
-    
-        // Safe SQL query with backticks
-        $query = "SELECT `id`, `stripe_plan_id`, `name`, `price`, `interval`, `description`, `image_url`, `product_id` FROM `$table_name`";
+        
+        $query = "SELECT `id`, `stripe_plan_id`, `name`, `price`, `interval`, 
+                        `description`, `image_url`, `product_id`, `created_at` 
+                 FROM `$table_name`";
+        
         $plans = $wpdb->get_results($query, ARRAY_A);
     
         // Check for errors

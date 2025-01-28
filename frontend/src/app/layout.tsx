@@ -5,6 +5,7 @@ import  CustomNavbar from './components/navbar/navbar';
 import Footer from "./components/footer";
 import PageTransition from "./page-transition";
 import GoogleTranslate from './components/google-translate';
+import { CartProvider } from './context/CartContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,10 +38,12 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body className={inter.className}>
-        <CustomNavbar />
-        <PageTransition>{children}</PageTransition>
-        <Footer />
-        <GoogleTranslate />
+        <CartProvider>
+          <CustomNavbar />
+          <PageTransition>{children}</PageTransition>
+          <Footer />
+          <GoogleTranslate />
+        </CartProvider>
       </body>
     </html>
   );

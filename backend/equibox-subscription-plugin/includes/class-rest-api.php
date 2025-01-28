@@ -12,6 +12,7 @@ require_once __DIR__ . '/class-box-handler.php';
 require_once __DIR__ . '/subscription-admin-handler.php';
 require_once __DIR__ . '/subscription-user-handler.php';
 require_once __DIR__ . '/class-mailpoet-handler.php';
+require_once __DIR__ . '/class-membershop-handler.php';
 
 error_log('Stripe_Integration class file loaded.');
 
@@ -360,7 +361,27 @@ if (class_exists('Stripe_Integration')) {
                 'methods' => 'POST',
                 'callback' => ['MailPoet_Subscriber_Handler', 'add_subscriber'],
                 'permission_callback' => '__return_true',
-            ]);       
+            ]);      
+            
+            
+        // Member shop routes
+        register_rest_route('membershop/v1', '/products', [
+            'methods' => 'GET',
+            'callback' => ['MemberShop_Handler', 'get_shop_products'],
+            'permission_callback' => '__return_true',
+        ]);
+    
+        register_rest_route('membershop/v1', '/categories', [
+            'methods' => 'GET',
+            'callback' => ['MemberShop_Handler', 'get_shop_categories'],
+            'permission_callback' => '__return_true',
+        ]);
+    
+        register_rest_route('membershop/v1', '/filtered-products', [
+            'methods' => 'GET',
+            'callback' => ['MemberShop_Handler', 'get_filtered_products'],
+            'permission_callback' => '__return_true',
+        ]);
 
       
     }
