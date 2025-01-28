@@ -130,202 +130,206 @@ export default function MemberShopLayout() {
   };
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="max-w-[1280px] mx-auto mt-32">
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-12 text-base-content">
-          Välkommen till medlemsbutiken
-        </h1>
+    // Add overflow-x-hidden to prevent horizontal scroll
+    <div className="overflow-x-hidden">
+      <div className="container mx-auto px-4">
+        {/* Adjust top margin to prevent navbar overlap */}
+        <div className="max-w-[1280px] mx-auto mt-20 md:mt-32">
+          <h1 className="text-2xl md:text-3xl font-bold text-center mb-12 text-base-content">
+            Välkommen till medlemsbutiken
+          </h1>
 
-        {/* Categories Section */}
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-12">
-            {categories.map((category, index) => (
-              <div
-                key={index}
-                className="text-center cursor-pointer"
-                onClick={() => handleCategoryClick(category.slug)}
-              >
-                <div className="relative h-[200px] mb-2 bg-base-200 rounded-lg overflow-hidden">
-                  <Image
-                    src={category.image_url}
-                    alt={category.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 200px"
-                  />
-                  <div className="absolute inset-0 ">
-                    <div className="absolute top-2 left-2">
-                      <span className="text-sm font-medium text-white">Välj</span>
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <p className="text-md font-bold text-white">
-                        {category.title}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-base-content">
-                  {getProductCountForCategory(category.slug)} produkter
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Filter and products layout */}
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <div className="w-full md:w-64 space-y-4">
-            <button 
-              onClick={resetFilters}
-              className="text-sm text-blue-600 hover:underline mb-4 block"
-            >
-              Återställ filter
-            </button>
-
-            {/* Filter section
-            <div className="collapse collapse-arrow bg-base-200">
-              <input type="checkbox" defaultChecked />
-              <div className="collapse-title font-medium">Rabatt</div>
-              <div className="collapse-content">
-                <div className="form-control">
-                  <label className="label cursor-pointer">
-                    <span className="label-text">Endast på Rea</span>
-                    <input type="checkbox" className="checkbox" />
-                  </label>
-                </div>
-              </div>
-            </div>
-            */}
-
-            <div className="collapse collapse-arrow bg-base-200">
-              <input type="checkbox" defaultChecked />
-              <div className="collapse-title font-medium">Pris</div>
-              <div className="collapse-content">
-                <div className="form-control">
-                  <input
-                    type="range"
-                    min="0"
-                    max="1000"
-                    step="100"
-                    value={priceRange.max}
-                    onChange={(e) => handlePriceChange(Number(e.target.value))}
-                    className="range"
-                  />
-                  <div className="flex justify-between text-xs px-2">
-                    <span>0 kr</span>
-                    <span>{priceRange.max} kr</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Products Area */}
-          <div className="flex-1">
-            {/* View toggle and sort */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded ${viewMode === 'grid' ? 'bg-base-200' : ''}`}
-                  aria-label="Grid view"
+          {/* Categories Section */}
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-12">
+              {categories.map((category, index) => (
+                <div
+                  key={index}
+                  className="text-center cursor-pointer"
+                  onClick={() => handleCategoryClick(category.slug)}
                 >
-                  <FontAwesomeIcon icon={faGrip} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded ${viewMode === 'list' ? 'bg-base-200' : ''}`}
-                  aria-label="List view"
-                >
-                  <FontAwesomeIcon icon={faList} />
-                </button>
-              </div>
-              <select 
-                className="select select-bordered select-sm"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-              >
-                <option value="newest">Datum, nyast först</option>
-                <option value="oldest">Datum, äldst först</option>
-                <option value="price-asc">Pris, lägst först</option>
-                <option value="price-desc">Pris, högst först</option>
-              </select>
-            </div>
-
-            {loading ? (
-              <p className="text-center text-lg">Laddar produkter...</p>
-            ) : products.length > 0 ? (
-              <div className={`
-                ${viewMode === 'grid' 
-                  ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
-                  : 'flex flex-col gap-4'
-                }
-              `}>
-                {sortProducts(products, sortOrder).map((product) => (
-                  <div 
-                    key={product.id} 
-                    className={`relative group ${
-                      viewMode === 'list' 
-                        ? 'flex gap-4 border-b pb-4'
-                        : ''
-                    }`}
-                  >
-                    <div className={`relative ${
-                      viewMode === 'list' 
-                        ? 'w-48 flex-shrink-0'
-                        : ''
-                    }`}>
-                      <img
-                        src={product.image_url}
-                        alt={product.title}
-                        className={`${
-                          viewMode === 'list'
-                            ? 'w-48 h-48 object-cover'
-                            : 'w-full aspect-square object-cover'
-                        }`}
-                      />
-                      {/* Info icon with tooltip - lighter grey color */}
-                      <button 
-                        onClick={() => openProductModal(product)}
-                        className="absolute top-2 left-2 text-gray-400 hover:text-primary transition-colors tooltip"
-                        data-tip="Detaljer"
-                        aria-label="Product information"
-                      >
-                        <FontAwesomeIcon icon={faInfoCircle} className="h-5 w-5" />
-                      </button>
-                    </div>
-                    
-                    <div className={`${
-                      viewMode === 'list'
-                        ? 'flex-1 flex flex-col justify-between'
-                        : 'mt-3 space-y-1'
-                    }`}>
-                      <div>
-                        <h3 className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
-                          {product.title}
-                        </h3>
-                        <p className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
-                          {product.price} kr
+                  <div className="relative h-[200px] mb-2 bg-base-200 rounded-lg overflow-hidden">
+                    <Image
+                      src={category.image_url}
+                      alt={category.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 200px"
+                    />
+                    <div className="absolute inset-0 ">
+                      <div className="absolute top-2 left-2">
+                        <span className="text-sm font-medium text-white">Välj</span>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-md font-bold text-white">
+                          {category.title}
                         </p>
                       </div>
-                      <div className={`flex ${viewMode === 'list' ? 'justify-start' : 'justify-end'} px-2`}>
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          className="text-base-content hover:text-primary transition-colors tooltip"
-                          data-tip="Lägg i kundvagn"
-                          aria-label="Add to cart"
-                        >
-                          <FontAwesomeIcon icon={faCartPlus} className="h-5 w-5" />
-                        </button>
-                      </div>
                     </div>
                   </div>
-                ))}
+                  <p className="text-sm text-base-content">
+                    {getProductCountForCategory(category.slug)} produkter
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Filter and products layout */}
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Filters Sidebar */}
+            <div className="w-full md:w-64 space-y-4">
+              <button 
+                onClick={resetFilters}
+                className="text-sm text-blue-600 hover:underline mb-4 block"
+              >
+                Återställ filter
+              </button>
+
+              {/* Filter section
+              <div className="collapse collapse-arrow bg-base-200">
+                <input type="checkbox" defaultChecked />
+                <div className="collapse-title font-medium">Rabatt</div>
+                <div className="collapse-content">
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text">Endast på Rea</span>
+                      <input type="checkbox" className="checkbox" />
+                    </label>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <p className="text-center text-lg">Inga produkter tillgängliga.</p>
-            )}
+              */}
+
+              <div className="collapse collapse-arrow bg-base-200">
+                <input type="checkbox" defaultChecked />
+                <div className="collapse-title font-medium">Pris</div>
+                <div className="collapse-content">
+                  <div className="form-control">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1000"
+                      step="100"
+                      value={priceRange.max}
+                      onChange={(e) => handlePriceChange(Number(e.target.value))}
+                      className="range"
+                    />
+                    <div className="flex justify-between text-xs px-2">
+                      <span>0 kr</span>
+                      <span>{priceRange.max} kr</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Products Area */}
+            <div className="flex-1">
+              {/* View toggle and sort */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded ${viewMode === 'grid' ? 'bg-base-200' : ''}`}
+                    aria-label="Grid view"
+                  >
+                    <FontAwesomeIcon icon={faGrip} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded ${viewMode === 'list' ? 'bg-base-200' : ''}`}
+                    aria-label="List view"
+                  >
+                    <FontAwesomeIcon icon={faList} />
+                  </button>
+                </div>
+                <select 
+                  className="select select-bordered select-sm"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                >
+                  <option value="newest">Datum, nyast först</option>
+                  <option value="oldest">Datum, äldst först</option>
+                  <option value="price-asc">Pris, lägst först</option>
+                  <option value="price-desc">Pris, högst först</option>
+                </select>
+              </div>
+
+              {loading ? (
+                <p className="text-center text-lg">Laddar produkter...</p>
+              ) : products.length > 0 ? (
+                <div className={`
+                  ${viewMode === 'grid' 
+                    ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
+                    : 'flex flex-col gap-4'
+                  }
+                `}>
+                  {sortProducts(products, sortOrder).map((product) => (
+                    <div 
+                      key={product.id} 
+                      className={`relative group ${
+                        viewMode === 'list' 
+                          ? 'flex gap-4 border-b pb-4'
+                          : ''
+                      }`}
+                    >
+                      <div className={`relative ${
+                        viewMode === 'list' 
+                          ? 'w-48 flex-shrink-0'
+                          : ''
+                      }`}>
+                        <img
+                          src={product.image_url}
+                          alt={product.title}
+                          className={`${
+                            viewMode === 'list'
+                              ? 'w-48 h-48 object-cover'
+                              : 'w-full aspect-square object-cover'
+                          }`}
+                        />
+                        {/* Info icon with tooltip - lighter grey color */}
+                        <button 
+                          onClick={() => openProductModal(product)}
+                          className="absolute top-2 left-2 text-gray-400 hover:text-primary transition-colors tooltip"
+                          data-tip="Detaljer"
+                          aria-label="Product information"
+                        >
+                          <FontAwesomeIcon icon={faInfoCircle} className="h-5 w-5" />
+                        </button>
+                      </div>
+                      
+                      <div className={`${
+                        viewMode === 'list'
+                          ? 'flex-1 flex flex-col justify-between'
+                          : 'mt-3 space-y-1'
+                      }`}>
+                        <div>
+                          <h3 className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
+                            {product.title}
+                          </h3>
+                          <p className={`text-sm font-medium ${viewMode === 'list' ? 'text-left' : 'text-center'}`}>
+                            {product.price} kr
+                          </p>
+                        </div>
+                        <div className={`flex ${viewMode === 'list' ? 'justify-start' : 'justify-end'} px-2`}>
+                          <button 
+                            onClick={() => handleAddToCart(product)}
+                            className="text-base-content hover:text-primary transition-colors tooltip"
+                            data-tip="Lägg i kundvagn"
+                            aria-label="Add to cart"
+                          >
+                            <FontAwesomeIcon icon={faCartPlus} className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-lg">Inga produkter tillgängliga.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
