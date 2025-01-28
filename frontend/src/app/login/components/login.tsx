@@ -33,21 +33,20 @@ export default function LoginPage() {
       for (const [key, value] of response.headers.entries()) {
         console.log(`${key}: ${value}`);
       }
-      // Optionally verify login success
+      // verify login success
       const data = await response.json();
       console.log("Login successful", data);
-       // Store the user's email and name in sessionStorage
-      sessionStorage.setItem("authToken", data.token);
-      sessionStorage.setItem("userEmail", data.user_email); 
-      sessionStorage.setItem("userName", data.user_display_name);
 
-       // Set the cookie
-       document.cookie = `authToken=${data.token}; path=/`;
-
-      // Redirect to the dashboard
-      console.log("Before redirection:", window.location.href);
-      router.push("/userprofile");
-      console.log("After redirection:", window.location.href);
+      // Store user data
+      await Promise.all([
+        sessionStorage.setItem("authToken", data.token),
+        sessionStorage.setItem("userEmail", data.user_email),
+        sessionStorage.setItem("userName", data.user_display_name),
+        document.cookie = `authToken=${data.token}; path=/`
+      ]);
+      
+      await router.replace("/userprofile");
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }

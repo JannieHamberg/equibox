@@ -1,65 +1,65 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useCart } from '@/app/context/CartContext';
+import Image from 'next/image';
 
-interface SubscriptionItem {
+interface CartItem {
   id: number;
-  name: string;
+  title: string;
   price: number;
-  interval: string;
-  stripe_plan_id: string;
-  description?: string;
-  image_url?: string;
+  description: string;
+  image_url: string;
+  category: string;
 }
 
 export default function Cart() {
-  const router = useRouter();
-  const [cartItems, setCartItems] = useState<SubscriptionItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { updateCartCount } = useCart();
 
-  // Load cart items from localStorage on component mount
+  // Load cart items
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
+    const savedCart = localStorage.getItem("shopCart");
     if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
+      } catch (error) {
+        console.error("Error parsing cart:", error);
+        setCartItems([]);
+      }
     }
   }, []);
 
-  // Save cart items to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
-
   const handleRemoveItem = (itemId: number) => {
-    setCartItems(cartItems.filter((item) => item.id !== itemId));
+    const updatedCart = cartItems.filter((item) => item.id !== itemId);
+    setCartItems(updatedCart);
+    localStorage.setItem("shopCart", JSON.stringify(updatedCart));
+    updateCartCount(); // Update the cart count in navbar
   };
 
-/*   const handleAddSubscription = (subscription: SubscriptionItem) => {
-   
-    setCartItems([subscription]);
-  }; */
-
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cartItems.length === 0) return;
     
-    const subscriptionPlan = cartItems[0];
-    console.log('Storing plan data:', subscriptionPlan); // Debug log
-    
-    sessionStorage.setItem('subscriptionPlan', JSON.stringify({
-      id: subscriptionPlan.id,
-      name: subscriptionPlan.name,
-      price: subscriptionPlan.price,
-      interval: subscriptionPlan.interval,
-      stripe_plan_id: subscriptionPlan.stripe_plan_id,
-      description: subscriptionPlan.description
-    }));
-    
-    router.push('/checkout');
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items: cartItems }),
+      });
+      
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
     <div className="container mx-auto mt-32 p-4 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Din kundvagn</h1>
-      {cartItems.length === 0 ? (
+      {(!cartItems || cartItems.length === 0) ? (
         <div className="card bg-base-100 shadow-xl p-8 text-center">
           <p className="text-lg">Kundvagnen är tom</p>
         </div>
@@ -67,22 +67,24 @@ export default function Cart() {
         <>
           <div className="card bg-base-100 shadow-xl">
             {cartItems.map((item) => (
-              <div key={item.id} className="p-6">
+              <div key={item.id} className="p-6 border-b last:border-b-0">
                 <div className="flex items-start gap-4">
                   {item.image_url && (
                     <div className="w-24 h-24 relative">
-                    {/*   <img 
+                      <Image 
                         src={item.image_url} 
-                        alt={item.name}
-                        className="object-cover rounded-lg"
-                      /> */}
+                        alt={item.title}
+                        width={500}
+                        height={300}
+                        className="object-cover"
+                      />
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold">{item.name}</h3>
+                    <h3 className="text-xl font-semibold">{item.title}</h3>
                     <p className="text-gray-600">{item.description}</p>
                     <p className="text-lg font-medium mt-2">
-                      {item.price} SEK / {item.interval}
+                      {item.price} kr
                     </p>
                   </div>
                   <button 
@@ -90,7 +92,7 @@ export default function Cart() {
                     onClick={() => handleRemoveItem(item.id)}
                     aria-label="Ta bort produkt"
                   >
-                    Remove
+                    Ta bort
                   </button>
                 </div>
               </div>
@@ -98,6 +100,12 @@ export default function Cart() {
           </div>
 
           <div className="mt-6 card bg-base-100 shadow-xl p-6">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-xl font-semibold">Totalt:</span>
+              <span className="text-xl font-bold">
+                {cartItems.reduce((sum, item) => sum + Number(item.price), 0).toFixed(2)} kr
+              </span>
+            </div>
             <button 
               className="btn btn-primary w-full"
               onClick={handleCheckout}

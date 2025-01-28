@@ -9,49 +9,13 @@ import styles from "./navbar.module.css";
 import UserIcon from "./user-profile-icon";
 import ThemeToggle from "../theme-toggle";
 import BottomNavigation from "./bottom-navigation";
+import { useCart } from '@/app/context/CartContext';
 
 export default function CustomNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
- /*  const [cartCount, setCartCount] = useState(0); */
+  const { cartCount } = useCart();
 
-  // Fetch cart data
-/*   useEffect(() => {
-    const fetchCartData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const response = await fetch("/cart/items", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setCartCount(data.items_count || 0); // Update cart count
-        } else {
-          console.error("Failed to fetch cart data:", response.statusText);
-          setCartCount(0);
-        }
-      } catch (error) {
-        console.error("Error fetching cart data:", error);
-        setCartCount(0);
-      }
-    };
-
-    fetchCartData();
-
-    // Event listener for cart updates
-    const handleCartUpdate = () => fetchCartData();
-    window.addEventListener("cart-updated", handleCartUpdate);
-
-    // Cleanup listener
-    return () => window.removeEventListener("cart-updated", handleCartUpdate);
-  }, []); */
-  
   // Slideshow text for the top bar
   const topBarTexts = [
     "Minishoppen - kommer snart!",
@@ -95,12 +59,19 @@ export default function CustomNavbar() {
             <div className="hidden md:block">
               <UserIcon />
             </div>
-            <div className="hidden md:block">
-              <FontAwesomeIcon
-                icon={faShoppingCart}
-                className="h-5 w-5 md:h-6 md:w-6 text-gray-900 cursor-pointer"
-                aria-label="Member Shop kundvagn"
-              />
+            <div className="hidden md:block relative">
+              <Link href="/cart">
+                <FontAwesomeIcon
+                  icon={faShoppingCart}
+                  className="h-5 w-5 md:h-6 md:w-6 text-gray-900 cursor-pointer"
+                  aria-label="Member Shop kundvagn"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
             </div>
 
             {/* Show ThemeToggle on all screens */}
