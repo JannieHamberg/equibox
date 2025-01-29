@@ -18,7 +18,7 @@ export interface CartItem extends ShopProduct {
   quantity: number;
 }
 
-export interface CartContextType {
+export type CartContextType = {
   cartItems: CartItem[];
   cartCount: number;
   isMinicartOpen: boolean;
@@ -27,4 +27,5 @@ export interface CartContextType {
   removeFromCart: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   updateCartCount: () => void;
-} 
+  clearCart: () => void;
+}; 
