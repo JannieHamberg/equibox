@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faList, faGrip, faInfoCircle, faCartPlus } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from '@/app/context/CartContext';
 import { ShopProduct, Category } from '@/types/shop';
+import { useRouter } from 'next/navigation';
 
 export default function MemberShopLayout() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -18,6 +19,7 @@ export default function MemberShopLayout() {
   const [sortOrder, setSortOrder] = useState<string>('newest');
   const { updateCartCount, addToCart, setIsMinicartOpen } = useCart();
   const [selectedProduct, setSelectedProduct] = useState<ShopProduct | null>(null);
+  const router = useRouter();
 
   // Fetch categories 
   useEffect(() => {
@@ -129,6 +131,10 @@ export default function MemberShopLayout() {
     if (modal) modal.showModal();
   };
 
+  const handleProductClick = (productId: number) => {
+    router.push(`/member-shop/product/${productId}`);
+  };
+
   return (
     // Add overflow-x-hidden to prevent horizontal scroll
     <div className="overflow-x-hidden">
@@ -146,24 +152,30 @@ export default function MemberShopLayout() {
                 <div
                   key={index}
                   className="text-center cursor-pointer"
-                  onClick={() => handleCategoryClick(category.slug)}
                 >
-                  <div className="relative h-[200px] mb-2 bg-base-200 rounded-lg overflow-hidden">
-                    <Image
-                      src={category.image_url}
-                      alt={category.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 200px"
-                    />
-                    <div className="absolute inset-0 ">
-                      <div className="absolute top-2 left-2">
-                        <span className="text-sm font-medium text-white">Välj</span>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <p className="text-md font-bold text-white">
-                          {category.title}
-                        </p>
+                  <div 
+                    className="relative mb-2 transition-transform duration-200 hover:scale-95"
+                    onClick={() => handleCategoryClick(category.slug)}
+                  >
+                    <div className="relative h-[200px] bg-base-200 rounded-lg overflow-hidden">
+                      <Image
+                        src={category.image_url}
+                        alt={category.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 200px"
+                      />
+                      <div className="absolute inset-0">
+                        <div className="absolute top-2 left-2">
+                          <span className="text-sm font-medium text-white">
+                            {selectedCategory === category.slug ? 'Vald' : 'Välj'}
+                          </span>
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <p className="text-md font-bold text-white">
+                            {category.title}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -273,6 +285,8 @@ export default function MemberShopLayout() {
                           ? 'flex gap-4 border-b pb-4'
                           : ''
                       }`}
+                      onClick={() => handleProductClick(product.id)}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className={`relative ${
                         viewMode === 'list' 

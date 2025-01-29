@@ -13,6 +13,10 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      scale: {
+        '95': '0.95',
+        '98': '0.98',
+      },
     },
   },
   daisyui: {

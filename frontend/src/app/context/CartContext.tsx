@@ -10,6 +10,7 @@ export const CartContext = createContext<CartContextType>({
   addToCart: () => {},
   removeFromCart: () => {},
   updateQuantity: () => {},
+  clearCart: () => {},
   isMinicartOpen: false,
   setIsMinicartOpen: () => {},
 });
@@ -19,24 +20,44 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartCount, setCartCount] = useState(0);
   const [isMinicartOpen, setIsMinicartOpen] = useState(false);
 
-  const addToCart = (product: CartItem) => {
+  useEffect(() => {
+    const newCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+    setCartCount(newCount);
+  }, [cartItems]);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('shopCart');
+    if (savedCart) {
+      const parsedCart = JSON.parse(savedCart);
+      setCartItems(parsedCart);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      localStorage.setItem('shopCart', JSON.stringify(cartItems));
+    }
+  }, [cartItems]);
+
+  const addToCart = (product: CartItem & { quantity: number }) => {
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+      const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
+      
+      if (existingItemIndex >= 0) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + product.quantity
+        };
+        return updatedItems;
+      } else {
+        return [...prevItems, product];
       }
-      return [...prevItems, { ...product, quantity: 1, cartId: `${product.id}-${Date.now()}` }];
     });
-    updateCartCount();
   };
 
   const removeFromCart = (productId: number) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
-    updateCartCount();
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
@@ -49,23 +70,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         item.id === productId ? { ...item, quantity } : item
       )
     );
-    updateCartCount();
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+    setCartCount(0);
+    localStorage.removeItem('shopCart');
   };
 
   const updateCartCount = () => {
-    const count = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    setCartCount(count);
-    localStorage.setItem('shopCart', JSON.stringify(cartItems));
+    const newCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+    setCartCount(newCount);
   };
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem('shopCart');
-    if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      setCartItems(parsedCart);
-      setCartCount(parsedCart.reduce((sum: number, item: CartItem) => sum + item.quantity, 0));
-    }
-  }, []);
 
   return (
     <CartContext.Provider value={{
@@ -75,6 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addToCart,
       removeFromCart,
       updateQuantity,
+      clearCart,
       isMinicartOpen,
       setIsMinicartOpen
     }}>
