@@ -1,3 +1,7 @@
 /vendor/
 composer.json
 composer.lock
+equibox-analytics-08ca71c38377.json
+/equibox-subscription-plugin/vendor/
+/equibox-subscription-plugin/composer.json
+/equibox-subscription-plugin/composer.lock
