@@ -12,5 +12,6 @@ return array(
     'Stripe\\' => array($vendorDir . '/stripe/stripe-php/lib'),
     'PhpOption\\' => array($vendorDir . '/phpoption/phpoption/src/PhpOption'),
     'GrahamCampbell\\ResultType\\' => array($vendorDir . '/graham-campbell/result-type/src'),
+    'Equibox\\SubscriptionPlugin\\' => array($baseDir . '/includes'),
     'Dotenv\\' => array($vendorDir . '/vlucas/phpdotenv/src'),
 );

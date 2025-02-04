@@ -1,20 +1,20 @@
 <?php return array(
     'root' => array(
-        'name' => '__root__',
+        'name' => 'equibox/subscription-plugin',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'e8815859b3fd0cd5a542e62abd340f19f189d228',
-        'type' => 'library',
+        'reference' => '24220ad97e66e8c8127cfb2ec928641e76b4a911',
+        'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
-        '__root__' => array(
+        'equibox/subscription-plugin' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'e8815859b3fd0cd5a542e62abd340f19f189d228',
-            'type' => 'library',
+            'reference' => '24220ad97e66e8c8127cfb2ec928641e76b4a911',
+            'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
             'dev_requirement' => false,
@@ -28,15 +28,6 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'php-stubs/wordpress-stubs' => array(
-            'pretty_version' => 'v6.7.1',
-            'version' => '6.7.1.0',
-            'reference' => '83448e918bf06d1ed3d67ceb6a985fc266a02fd1',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../php-stubs/wordpress-stubs',
-            'aliases' => array(),
-            'dev_requirement' => true,
-        ),
         'phpoption/phpoption' => array(
             'pretty_version' => '1.9.3',
             'version' => '1.9.3.0',
@@ -47,9 +38,9 @@
             'dev_requirement' => false,
         ),
         'stripe/stripe-php' => array(
-            'pretty_version' => 'v16.3.0',
-            'version' => '16.3.0.0',
-            'reference' => '48af6bc64ca8157b3fdce100e856069963bac466',
+            'pretty_version' => 'v16.5.0',
+            'version' => '16.5.0.0',
+            'reference' => '3fb22256317344e049fce02ff289af3b776b0464',
             'type' => 'library',
             'install_path' => __DIR__ . '/../stripe/stripe-php',
             'aliases' => array(),

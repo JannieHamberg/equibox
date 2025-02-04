@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3
+class ComposerStaticInit65f6a5bb5ea422a4e642dfaa18a3d7ec
 {
     public static $files = array (
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
@@ -27,6 +27,10 @@ class ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3
         'G' => 
         array (
             'GrahamCampbell\\ResultType\\' => 26,
+        ),
+        'E' => 
+        array (
+            'Equibox\\SubscriptionPlugin\\' => 27,
         ),
         'D' => 
         array (
@@ -59,6 +63,10 @@ class ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
         ),
+        'Equibox\\SubscriptionPlugin\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/includes',
+        ),
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
@@ -77,9 +85,9 @@ class ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInita707f67fa5c8b51a75e2841175ca09a3::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit65f6a5bb5ea422a4e642dfaa18a3d7ec::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit65f6a5bb5ea422a4e642dfaa18a3d7ec::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit65f6a5bb5ea422a4e642dfaa18a3d7ec::$classMap;
 
         }, null, ClassLoader::class);
     }

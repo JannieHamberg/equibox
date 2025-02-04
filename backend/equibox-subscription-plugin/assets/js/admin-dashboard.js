@@ -188,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 description: formData.get("description"),
                 image_url: formData.get("image_url"),
                 product_ids: selectedProducts,
+                stripe_plan_id: document.getElementById("stripe_plan_id").value,
                 nonce: document.querySelector('[name="add_plan_nonce"]').value,
             }),
         })
@@ -268,6 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 description: formData.get("description"),
                 image_url: formData.get("image_url"),
                 product_ids: selectedProducts,
+                stripe_plan_id: document.getElementById("edit_stripe_plan_id").value,
                 nonce: document.querySelector('[name="edit_plan_nonce"]').value,
             }),
         })
