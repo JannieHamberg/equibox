@@ -38,7 +38,7 @@ function render_admin_dashboard() {
     // List Existing Subscription Plans
     echo '<h2>Subscription Plans</h2>';
     echo '<table id="subscription-plans-table" class="widefat fixed striped">';
-    echo '<thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Interval</th><th>Description</th><th>Image URL</th><th>Actions</th></tr></thead>';
+    echo '<thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Interval</th><th>Description</th><th>Stripe Price ID</th><th>Image URL</th><th>Actions</th></tr></thead>';
     echo '<tbody>';
 
     $plans = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}subscription_plans");
@@ -49,7 +49,8 @@ function render_admin_dashboard() {
             <td>{$plan->price}</td>
             <td>{$plan->interval}</td>
             <td>{$plan->description}</td>
-            <td>" . esc_html($plan->image_url) . "</td>
+            <td>" . esc_html($plan->stripe_plan_id) . "</td>
+            <td><img src='{$plan->image_url}' alt='Plan Image' width='50'></td>
             <td>
                 <button class='button edit-plan-button' 
                     data-id='{$plan->id}' 
@@ -97,6 +98,7 @@ function render_admin_dashboard() {
     echo '<div class="add_subscription_plan" style="flex: 1;">';
     echo '<h3>Add New Subscription Plan</h3>';
     echo '<form id="add-plan-form">';
+    echo '<input type="hidden" id="stripe_plan_id" name="stripe_plan_id">'; 
     echo '<input type="hidden" name="add_plan_nonce" value="' . wp_create_nonce('add_plan_action') . '">';
     echo '<table class="form-table">';
     echo '<tr><th><label for="plan_name">Plan Name:</label></th>';
@@ -128,6 +130,7 @@ function render_admin_dashboard() {
     echo '<div class="edit-subscription-plan" style="flex: 1;">';
     echo '<h3>Edit Subscription Plan</h3>';
     echo '<form id="edit-plan-form">';
+    echo '<input type="hidden" id="edit_stripe_plan_id" name="stripe_plan_id">';
     echo '<input type="hidden" id="edit_plan_id" name="id">';
     echo '<input type="hidden" name="edit_plan_nonce" value="' . wp_create_nonce('edit_plan_action') . '">';
     echo '<table class="form-table">';
