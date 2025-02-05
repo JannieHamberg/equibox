@@ -1,13 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = sessionStorage.getItem("authToken");
+    if (!token) {
+      // No token, stay on login page
+      return;
+    }
+
+    // Verify token is valid
+    fetch("https://backend.equibox.se/wp-json/jwt-auth/v1/token/validate", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        router.push('/userprofile');
+      } else {
+        // Invalid token, clear it
+        sessionStorage.removeItem("authToken");
+        sessionStorage.removeItem("userEmail");
+        sessionStorage.removeItem("userName");
+      }
+    })
+    .catch(() => {
+      // Error checking token, clear it
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("userEmail");
+      sessionStorage.removeItem("userName");
+    });
+  }, [router]);
 
   const handleLogin = async () => {
     setError(null);

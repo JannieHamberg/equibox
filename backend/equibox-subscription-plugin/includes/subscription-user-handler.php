@@ -189,78 +189,126 @@ class Subscription_Handler {
             'message' => 'Subscription created successfully!',
         ]);
     }
-    
-    
-    
-    
-    
-    
 
 
     public static function update_user_subscription($request) {
+        error_log('Reached subscription update endpoint');
+        error_log('Stripe Key Check: ' . (get_option('stripe_secret_key') ? 'Key exists' : 'No key found'));
+        
         global $wpdb;
-    
         $user_id = get_current_user_id();
         $plan_id = intval($request->get_param('plan_id'));
-    
+
         if (!$user_id || !$plan_id) {
-            return new WP_Error('missing_data', 'User ID and new plan ID are required.', ['status' => 400]);
+            return new WP_Error('missing_data', 'User ID and plan ID are required.', ['status' => 400]);
         }
-    
-        // Check if the subscription exists
-        $subscription = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}subscriptions WHERE user_id = %d", 
-            $user_id
-        ));
-        if (!$subscription) {
-            return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
-        }
-    
-        // Fetch the new plan and validate its Stripe ID
-        $plan = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d", 
-            $plan_id
-        ));
-        if (!$plan || empty($plan->stripe_plan_id)) {
-            return new WP_Error('invalid_plan', 'The selected subscription plan does not exist or is missing a Stripe plan ID.', ['status' => 404]);
-        }
-    
+
         try {
-            $stripe_plan = \Stripe\Price::retrieve($plan->stripe_plan_id);
-            if (!$stripe_plan || !$stripe_plan->active) {
-                return new WP_Error('invalid_stripe_plan', 'The selected Stripe plan is invalid or inactive.', ['status' => 400]);
+            // Get current subscription
+            $current_subscription = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}subscriptions WHERE user_id = %d",
+                $user_id
+            ));
+
+            if (!$current_subscription) {
+                return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
             }
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API error during update: ' . $e->getMessage());
-            return new WP_Error('stripe_error', 'Failed to validate Stripe plan: ' . $e->getMessage(), ['status' => 500]);
-        }
-    
-        // Update the subscription in Stripe
-        try {
-            Stripe_Integration::update_stripe_subscription($subscription->stripe_subscription_id, $plan->stripe_plan_id);
+
+            // Get new plan details
+            $new_plan = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}subscription_plans WHERE id = %d",
+                $plan_id
+            ));
+
+            if (!$new_plan || empty($new_plan->stripe_plan_id)) {
+                return new WP_Error('invalid_plan', 'The selected subscription plan does not exist.', ['status' => 404]);
+            }
+
+            error_log('Attempting to update Stripe subscription: ' . $current_subscription->stripe_subscription_id);
+            error_log('New Stripe plan ID: ' . $new_plan->stripe_plan_id);
+
+            try {
+                // Initialize Stripe directly
+                if (!defined('STRIPE_SECRET_KEY')) {
+                    throw new Exception('Stripe secret key is not defined');
+                }
+                \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+                
+                // Retrieve the subscription
+                $stripe_subscription = \Stripe\Subscription::retrieve($current_subscription->stripe_subscription_id);
+                
+                // Check if subscription status is incomplete
+                if ($stripe_subscription->status === 'incomplete') {
+                    return new WP_Error(
+                        'incomplete_subscription',
+                        'Din prenumeration är för närvarande ofullständig. Vänligen betala din utestående faktura innan du uppdaterar din prenumeration.',
+                        [
+                            'status' => 400,
+                            'subscription_status' => 'incomplete'
+                        ]
+                    );
+                }
+                
+                // Continue with update if status is not incomplete
+                $updated_subscription = \Stripe\Subscription::update(
+                    $current_subscription->stripe_subscription_id,
+                    [
+                        'items' => [
+                            [
+                                'id' => $stripe_subscription->items->data[0]->id,
+                                'price' => $new_plan->stripe_plan_id,
+                            ],
+                        ],
+                        'proration_behavior' => 'always_invoice'
+                    ]
+                );
+
+                error_log('Stripe subscription updated successfully');
+
+                // Update local database
+                $update_result = $wpdb->update(
+                    "{$wpdb->prefix}subscriptions",
+                    [
+                        'plan_id' => $plan_id,
+                        'updated_at' => current_time('mysql')
+                    ],
+                    ['user_id' => $user_id]
+                );
+
+                if ($update_result === false) {
+                    error_log('Failed to update local database');
+                    throw new Exception('Failed to update subscription in local database');
+                }
+
+                error_log('Local database updated successfully');
+
+                return rest_ensure_response([
+                    'success' => true,
+                    'message' => 'Subscription updated successfully!'
+                ]);
+
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                error_log('Stripe API Error: ' . $e->getMessage());
+                
+                // Check if the error is related to incomplete subscription
+                if (strpos($e->getMessage(), 'incomplete') !== false) {
+                    return new WP_Error(
+                        'incomplete_subscription',
+                        'Din prenumeration är för närvarande ofullständig. Vänligen betala din utestående faktura innan du uppdaterar din prenumeration.',
+                        [
+                            'status' => 400,
+                            'subscription_status' => 'incomplete'
+                        ]
+                    );
+                }
+                
+                return new WP_Error('stripe_error', 'Stripe API Error: ' . $e->getMessage(), ['status' => 500]);
+            }
+
         } catch (Exception $e) {
-            return new WP_Error('stripe_error', $e->getMessage(), ['status' => 500]);
+            error_log('Subscription update error: ' . $e->getMessage());
+            return new WP_Error('update_error', 'Failed to update subscription: ' . $e->getMessage(), ['status' => 500]);
         }
-    
-        // Update the subscription in the database
-        $updated = $wpdb->update(
-            "{$wpdb->prefix}subscriptions",
-            [
-                'plan_id' => $plan_id,
-                'updated_at' => current_time('mysql'),
-                'payment_due_date' => date('Y-m-d H:i:s', strtotime('+1 month')),
-            ],
-            ['user_id' => $user_id]
-        );
-    
-        if ($updated === false) {
-            return new WP_Error('update_failed', 'Failed to update subscription.', ['status' => 500]);
-        }
-    
-        return rest_ensure_response([
-            'success' => true,
-            'message' => 'Subscription updated successfully!',
-        ]);
     }
     
     
