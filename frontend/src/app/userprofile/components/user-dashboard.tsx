@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import LogoutButton from "./logout-btn";
 import PickSubscription from "./pick-subscription";
 import { Subscription, SubscriptionPlan } from '@/types/subscription';
+import Link from 'next/link';
 
 export default function UserDashboard() {
   const [subscription, setSubscription] = useState<Subscription | null | undefined>(undefined);
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null); // Track selected plan
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUserSubscription();
@@ -143,16 +144,38 @@ export default function UserDashboard() {
         />
       ) : (
         <div>
-          <div className="p-6">
-            <h2 className={styles.title}>{subscription.name}</h2>
-            <p className={styles.description}>{subscription.description}</p>
-            <p className={styles.price}>
-              {subscription.price} SEK /{" "}
-              {subscription.interval === "monthly" ? "månadsvis" : subscription.interval}
-            </p>
-            <p className={styles.status}>
-              Status: {subscription.status === "active" ? "aktiv" : subscription.status}
-            </p>
+          <div className="card bg-base-200 shadow-xl p-6">
+            <div className="card-body">
+              <div className="mb-6">
+                <h2 className="card-title mb-2">
+                  <div className="font-bold">Din prenumerationsbox:</div>
+                  <div>{subscription.name}</div>
+                </h2>
+                <p className="text-base-content/70">{subscription.description}</p>
+              </div>
+
+              <div className="stats bg-base-100 shadow">
+                <div className="stat">
+                  <div className="stat-title">Pris</div>
+                  <div className="stat-value text-lg">
+                    {subscription.price} SEK
+                  </div>
+                  <div className="stat-desc">
+                    {subscription.interval === "monthly" ? "månadsvis" : subscription.interval}
+                  </div>
+                </div>
+
+                <div className="stat">
+                  <div className="stat-title">Status</div>
+                  <div className={`stat-value text-lg ${
+                    subscription.status === "active" ? "text-green-500" : 
+                    subscription.status === "incomplete" ? "text-red-500" : ""
+                  }`}>
+                    {subscription.status === "active" ? "Aktiv" : subscription.status}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className={`p-6 mt-6`}>
