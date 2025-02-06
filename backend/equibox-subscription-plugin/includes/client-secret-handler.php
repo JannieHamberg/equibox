@@ -15,67 +15,68 @@ function handle_create_client_secret($request) {
     \Stripe\Stripe::setApiKey($stripe_secret_key);
 
     // Parse and sanitize input
-    $body = $request->get_json_params();
-    error_log("Request Body: " . print_r($body, true));
+    $params = $request->get_json_params();
+    error_log("Request Body: " . print_r($params, true));
 
-    if (!isset($body['email']) || !isset($body['name'])) {
-        error_log("Missing required fields: email or name.");
-        return new WP_Error(
-            'invalid_request',
-            'Missing required fields: email or name.',
-            ['status' => 400]
-        );
+    // Ensure required parameters exist
+    if (empty($params['amount'])) {
+        error_log("Amount is required");
+        return new WP_Error('invalid_request', 'Amount is required', ['status' => 400]);
     }
 
-    $email = sanitize_email($body['email']);
-    $name = sanitize_text_field($body['name']);
-    $amount = intval($body['amount'] ?? 0);
-
-    if ($amount <= 0) {
-        error_log("Invalid payment amount: $amount");
-        return new WP_Error('invalid_request', 'Invalid payment amount. Amount must be greater than 0.', ['status' => 400]);
+    if (empty($params['customer_id'])) {
+        error_log("Missing customer_id in create-client-secret request.");
+        return new WP_Error('invalid_request', 'customer_id is required', ['status' => 400]);
     }
+
+    // Sanitize values
+    $customer_id = is_array($params['customer_id']) && isset($params['customer_id']['id']) 
+        ? sanitize_text_field($params['customer_id']['id']) 
+        : sanitize_text_field($params['customer_id']);
+
+    $amount = intval($params['amount']);
 
     try {
-        // Check if the customer already exists
-        $existingCustomers = \Stripe\Customer::all(['email' => $email]);
-        if (!empty($existingCustomers->data)) {
-            $customer = $existingCustomers->data[0];
-            error_log("Existing Stripe Customer Found: " . $customer->id);
-        } else {
-            // Create a new customer
-            $customer = \Stripe\Customer::create([
-                'email' => $email,
-                'name' => $name,
-            ]);
-            error_log("New Stripe Customer Created: " . $customer->id);
-        }
-
         // Create a PaymentIntent for the subscription setup
-        $paymentIntent = \Stripe\PaymentIntent::create([
-            'amount' => $amount, 
-            'currency' => 'sek', 
-            'customer' => $customer->id,
-            'setup_future_usage' => 'off_session', 
+        $intent = \Stripe\PaymentIntent::create([
+            'amount' => $amount,
+            'currency' => 'sek',
+            'customer' => $customer_id,
             'payment_method_types' => ['card'],
+            'payment_method' => $params['payment_method_id'] ?? null,
+            'setup_future_usage' => 'off_session',
+            'confirm' => false,
             'metadata' => [
-                'email' => $email,
-                'name' => $name,
+                'customer_id' => $customer_id,
+                'email' => $params['email'] ?? '',
             ],
         ]);
-        error_log("Stripe PaymentIntent Created: " . $paymentIntent->id);
-        error_log("Client Secret: " . $paymentIntent->client_secret);
 
-        // Return the client secret and optional details
+        // If payment method is provided, attach it to the customer
+        if (!empty($params['payment_method_id'])) {
+            try {
+                $payment_method = \Stripe\PaymentMethod::retrieve($params['payment_method_id']);
+                if ($payment_method->customer !== $customer_id) {
+                    $payment_method->attach([
+                        'customer' => $customer_id,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                error_log('Error attaching payment method: ' . $e->getMessage());
+            }
+        }
+
+        error_log("Stripe PaymentIntent Created: " . $intent->id);
+        error_log("Client Secret: " . $intent->client_secret);
+
         return rest_ensure_response([
-            'clientSecret' => $paymentIntent->client_secret,
-            'paymentIntentId' => $paymentIntent->id,
-            'customerId' => $customer->id,
+            'clientSecret' => $intent->client_secret,
+            'paymentIntentId' => $intent->id,
         ]);
 
     } catch (\Stripe\Exception\ApiErrorException $e) {
         error_log('Stripe API Error: ' . $e->getMessage());
-        return new WP_Error('stripe_error', $e->getMessage(), ['status' => 500]);
+        return new WP_Error('stripe_error', $e->getMessage(), ['status' => 400]);
     } catch (Exception $e) {
         error_log('General Error: ' . $e->getMessage());
         return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);

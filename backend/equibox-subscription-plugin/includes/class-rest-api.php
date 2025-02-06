@@ -103,9 +103,8 @@ if (class_exists('Stripe_Integration')) {
             '/create-subscription',
             [
                 'methods' => 'POST',
-                'callback' => [Stripe_Integration::class, 'handle_create_subscription'], 
-                'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
-               
+                'callback' => [Stripe_Integration::class, 'handle_create_subscription'],
+                'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
             ]
         );
 
@@ -142,12 +141,10 @@ if (class_exists('Stripe_Integration')) {
         ]);
 
         
-        register_rest_route('stripe/v1', '/create-client-secret',[
+        register_rest_route('stripe/v1', '/create-client-secret', [
             'methods' => 'POST',
-            'callback' => 'handle_create_client_secret',
-            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'], 
-          
-
+            'callback' => 'handle_create_client_secret', 
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
         ]);
 
         register_rest_route('stripe/v1', '/attach-payment-method', [
@@ -384,6 +381,11 @@ if (class_exists('Stripe_Integration')) {
         ]);
 
       
+        register_rest_route('stripe/v1', '/cleanup-subscriptions', [
+            'methods' => 'POST',
+            'callback' => [Stripe_Integration::class, 'cleanup_subscriptions'],
+            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+        ]);
     }
     // Permission callbacks
     public static function check_logged_in_permissions() {

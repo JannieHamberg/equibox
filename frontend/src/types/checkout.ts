@@ -7,11 +7,26 @@ export interface SubscriptionPlan {
   description?: string;
 }
 
+export interface BillingDetails {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  vatNumber?: string;
+}
+
 export interface CheckoutFormProps {
-  clientSecret: string;
+  clientSecret: string | null;  // Allow null
+  setClientSecret: (secret: string | null) => void;
   email: string;
   name: string;
   stripeCustomerId: string;
   subscriptionPlan: SubscriptionPlan;
   authToken: string;
+  paymentMethod: 'card' | 'invoice';
+}
+
+export interface CleanupResponse {
+    success: boolean;
+    cleaned_subscriptions: number;
 }

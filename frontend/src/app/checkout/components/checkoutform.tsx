@@ -5,200 +5,159 @@ import { CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useEle
 import { useRouter } from "next/navigation";
 import { CheckoutFormProps } from '@/types/checkout';
 
-export default function CheckoutForm({ clientSecret, email, name, /* stripeCustomerId, */ subscriptionPlan, authToken }: CheckoutFormProps) {
+export default function CheckoutForm({ 
+  clientSecret, 
+  email, 
+  name, 
+  subscriptionPlan, 
+  authToken,
+  paymentMethod,
+  stripeCustomerId
+}: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
-
-  const [cardholderName, setCardholderName] = useState<string>(""); 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (loading || !stripe || !elements) return;
     setLoading(true);
-  
+    setErrorMessage(null);
+
     try {
-      if (!stripe || !elements) throw new Error("Stripe.js is not loaded yet.");
-      if (!clientSecret) throw new Error("Client secret not available.");
-  
-      const cardNumberElement = elements.getElement(CardNumberElement);
-      if (!cardNumberElement) throw new Error("Card Number Element is not loaded.");
-  
-      // Confirm card payment
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardNumberElement,
-          billing_details: {
-            email,
-            name: cardholderName, 
+      // Create payment method
+      const cardElement = elements.getElement(CardNumberElement);
+      if (!cardElement) throw new Error('Card element not found');
+
+      const { error: methodError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          email,
+          name,
+        },
+      });
+
+      if (methodError) {
+        throw methodError;
+      }
+
+      // Create subscription with Stripe
+      const subscriptionResponse = await fetch("/stripe/create-subscription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          email,
+          name,
+          plan_id: subscriptionPlan.id,
+          stripe_plan_id: subscriptionPlan.stripe_plan_id,
+          payment_method: 'card',
+          payment_method_id: paymentMethod.id,  
+          customer_id: stripeCustomerId
+        }),
+      });
+
+      const subscriptionData = await subscriptionResponse.json();
+      console.log('Subscription response:', subscriptionData);
+
+      if (!subscriptionResponse.ok) {
+        throw new Error(subscriptionData.message || 'Failed to create subscription');
+      }
+
+      if (!subscriptionData.client_secret) {
+        console.error('Missing client secret in response:', subscriptionData);
+        throw new Error('No client secret returned from subscription creation');
+      }
+
+      // Confirm the payment
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+        subscriptionData.client_secret,
+        {
+          payment_method: paymentMethod.id,
+        }
+      );
+
+      if (confirmError) {
+        throw new Error(confirmError.message);
+      }
+
+      if (paymentIntent.status === 'succeeded') {
+        // Create subscription in custom database only after payment succeeds
+        const customDbResponse = await fetch("/user/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
           },
-        },
-      });
-  
-      if (error || !paymentIntent) {
-        throw new Error(error?.message || "Failed to confirm payment.");
-      }
-  
-      const paymentMethodId = paymentIntent.payment_method;
-      console.log("Payment Method ID:", paymentMethodId);
-      console.log("stripe_plan_id:", subscriptionPlan.stripe_plan_id);
+          body: JSON.stringify({
+            plan_id: subscriptionPlan.id,
+            stripe_plan_id: subscriptionPlan.stripe_plan_id,
+            email,
+            name,
+            payment_method: 'card',
+            status: 'active',
+            stripe_subscription_id: subscriptionData.stripe_subscription_id
+          }),
+        });
 
-      // Send payment method to create subscription
-      const stripeResponse = await fetch("/stripe/create-subscription", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          email, 
-          name: cardholderName,
-          stripe_plan_id: subscriptionPlan.stripe_plan_id, 
-          payment_method_id: paymentMethodId, 
-        }),
-      });
-  
-      if (!stripeResponse.ok) {
-        const errorData = await stripeResponse.json();
-        throw new Error(`Stripe Subscription Error: ${errorData.message}`);
-      }
+        if (!customDbResponse.ok) {
+          const errorData = await customDbResponse.json();
+          throw new Error(errorData.message || 'Failed to create subscription in database');
+        }
 
-      const { stripe_subscription_id } = await stripeResponse.json(); // debugg
-      console.log("Stripe Subscription ID:", stripe_subscription_id);
-  
-      // Create subscription in the custom database
-      const customDbResponse = await fetch("/user/subscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          plan_id: subscriptionPlan.id, // Custom database plan ID
-          stripe_plan_id: subscriptionPlan.stripe_plan_id, // Stripe Price ID
-          stripe_subscription_id, // Stripe Subscription ID
-          email, 
-          name: name, 
-          payment_method_id: paymentMethodId, 
-        }),
-      });
-      console.log("Payload sent to /user/subscribe:", {
-        plan_id: subscriptionPlan.id,
-        stripe_plan_id: subscriptionPlan.stripe_plan_id,
-        stripe_subscription_id,
-        email,
-        name,
-        payment_method_id: paymentMethodId,
-      });
-  
-      if (!customDbResponse.ok) {
-        const errorData = await customDbResponse.json();
-        throw new Error(`Custom Database Error: ${errorData.message}`);
+        router.push('/subscription-success?type=card');
       }
-  
-      // Redirect to the subscription success page
-      router.push("/subscription-success");
     } catch (error) {
-      setErrorMessage((error as Error).message);
+      console.error('Payment error:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
-  
-    
-      return (
-        
-        <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 border rounded shadow-md">
-          <h2 className="text-xl font-bold mb-4 text-center">Betalningsuppgifter</h2>
-    
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 ">Kortinnehavarens namn</label>
-            <input
-              type="text"
-              value={cardholderName}
-              onChange={(e) => setCardholderName(e.target.value)}
-              className="w-full p-0 text-left"
-              placeholder="Förnamn efternamn"
-              required
-            />
-          </div>
-    
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Kortnummer</label>
-            <CardNumberElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: "12px",
-                    color: "#32325d",
-                    fontFamily: "'Helvetica Neue', Helvetica, sans-serif",
-                    "::placeholder": {
-                      color: "#aab7c4",
-                    },
-                  },
-                  invalid: {
-                    color: "#fa755a",
-                    iconColor: "#fa755a",
-                  },
-                },
-              }}
-            />
-          </div>
-    
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Utgångsdatum</label>
-            <CardExpiryElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: "12px",
-                    color: "#32325d",
-                    fontFamily: "'Helvetica Neue', Helvetica, sans-serif",
-                    "::placeholder": {
-                      color: "#aab7c4",
-                    },
-                  },
-                  invalid: {
-                    color: "#fa755a",
-                    iconColor: "#fa755a",
-                  },
-                },
-              }}
-            />
-          </div>
-    
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">CVC</label>
-            <CardCvcElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: "12px",
-                    color: "#32325d",
-                    fontFamily: "'Helvetica Neue', Helvetica, sans-serif",
-                    "::placeholder": {
-                      color: "#aab7c4",
-                    },
-                  },
-                  invalid: {
-                    color: "#fa755a",
-                    iconColor: "#fa755a",
-                  },
-                },
-              }}
-            />
-          </div>
-    
-          {errorMessage && <p className="text-red-500" role="alert">{errorMessage}</p>}
-          <button 
-            disabled={loading} 
-            className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
-            aria-label={loading ? "Bearbetar din beställning" : "Bekräfta din beställning"}
-          >
-            {loading ? "Processing..." : "Bekräfta"}
-          </button>
-        </form>
-      );
-    }
+
+  if (!subscriptionPlan) {
+    return <div>Loading subscription details...</div>;
+  }
+
+  if (paymentMethod !== 'card') {
+    return null;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">Card Number</label>
+        <CardNumberElement className="p-3 border rounded" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Expiry Date</label>
+          <CardExpiryElement className="p-3 border rounded" />
+        </div>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">CVC</label>
+          <CardCvcElement className="p-3 border rounded" />
+        </div>
+      </div>
+
+      {errorMessage && (
+        <div className="text-red-500 text-sm">{errorMessage}</div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading || !stripe || !elements}
+        className={`w-full btn btn-primary ${loading ? 'loading' : ''}`}
+      >
+        {loading ? 'Processing...' : 'Pay Now'}
+      </button>
+    </form>
+  );
+}
     

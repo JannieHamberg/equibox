@@ -107,14 +107,14 @@ const nextConfig: NextConfig = {
         destination: "https://backend.equibox.se/wp-json/stripe/v1/get-or-create-customer",
       },
       {
-          // Create a subscription in stripe
-          source: "/stripe/create-subscription", 
-          destination: "https://backend.equibox.se/wp-json/stripe/v1/create-subscription",
-        },
-    
-      
-      
-
+        // Create a subscription in stripe
+        source: "/stripe/create-subscription", 
+        destination: "https://backend.equibox.se/wp-json/stripe/v1/create-subscription",
+      },
+      {
+        source: "/stripe/cleanup-subscriptions",
+        destination: "https://backend.equibox.se/wp-json/stripe/v1/cleanup-subscriptions",
+      },
     ];
   },
 };
