@@ -11,6 +11,12 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Prenumerationer } from '@/types/subscription';
 
+function truncateDescription(description: string): string {
+  const firstSentence = description.split(/[.!?]/)
+    .filter(sentence => sentence.trim().length > 0)[0];
+  return firstSentence ? `${firstSentence.trim()}...` : description;
+}
+
 export default function SubscriptionPlans() {
   const [plans, setPlans] = useState<Prenumerationer[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +98,7 @@ export default function SubscriptionPlans() {
                     </figure>
                     <div className="card-body p-4 md:p-6">
                       <h2 className="card-title text-lg md:text-xl">{plan.name}</h2>
-                      <p className="text-sm md:text-base">{plan.description}</p>
+                      <p className="text-sm md:text-base">{truncateDescription(plan.description)}</p>
                       <p className="text-base md:text-lg font-semibold">
                         {plan.price} SEK / månadsvis
                       </p>

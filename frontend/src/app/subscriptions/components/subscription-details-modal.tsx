@@ -1,4 +1,5 @@
 import { SubscriptionDetailsModalProps } from '@/types/subscription';
+import Link from 'next/link';
 
 export default function SubscriptionDetailsModal({ isOpen, onClose, plan }: SubscriptionDetailsModalProps) {
   if (!plan) return null;
@@ -28,6 +29,11 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, plan }: Subs
             <p className="text-lg font-semibold mt-4">
               {plan.price} SEK / månadsvis
             </p>
+            <div className="mt-6">
+              <Link href="/login" className="btn btn-primary w-auto px-6">
+                Prenumerera
+              </Link>
+            </div>
           </div>
         </div>
       </div>
