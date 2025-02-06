@@ -32,6 +32,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/subscription-user-handler.php
 require_once plugin_dir_path(__FILE__) . 'includes/subscription-admin-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-box-handler.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-product-handler.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-membershop-handler.php';
 
 require_once plugin_dir_path(__FILE__) . 'includes/admin-dashboard.php';
 require_once plugin_dir_path(__FILE__) . 'includes/analytics-dashboard.php';
