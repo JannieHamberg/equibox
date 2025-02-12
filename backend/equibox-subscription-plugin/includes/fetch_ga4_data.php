@@ -81,8 +81,11 @@ function fetch_ga4_data() {
             ['name' => 'bounceRate']
         ],
         'dimensions' => [
+            ['name' => 'user_type'], // Custom dimension
             ['name' => 'pageTitle'],
-            ['name' => 'country']
+            ['name' => 'country'],
+          
+
         ]
     ];
 

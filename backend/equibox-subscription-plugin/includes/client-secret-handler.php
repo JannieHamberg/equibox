@@ -1,11 +1,7 @@
 <?php
 function handle_create_client_secret($request) {
-    error_log("handle_create_client_secret endpoint called.");
-
     // Ensure Stripe SDK is loaded
     require_once __DIR__ . '/../vendor/autoload.php'; 
-    error_log("Stripe SDK loaded in create-client-secret endpoint");
-
     // Set Stripe API key
     $stripe_secret_key = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
     if (empty($stripe_secret_key)) {

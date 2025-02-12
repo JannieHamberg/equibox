@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckoutFormProps } from '@/types/checkout';
 
 export default function CheckoutForm({ 
-  clientSecret, 
+  /* clientSecret,  */
   email, 
   name, 
   subscriptionPlan, 
@@ -58,7 +58,8 @@ export default function CheckoutForm({
           stripe_plan_id: subscriptionPlan.stripe_plan_id,
           payment_method: 'card',
           payment_method_id: paymentMethod.id,  
-          customer_id: stripeCustomerId
+          customer_id: stripeCustomerId,
+          create_in_db: true
         }),
       });
 
@@ -87,29 +88,6 @@ export default function CheckoutForm({
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Create subscription in custom database only after payment succeeds
-        const customDbResponse = await fetch("/user/subscribe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            plan_id: subscriptionPlan.id,
-            stripe_plan_id: subscriptionPlan.stripe_plan_id,
-            email,
-            name,
-            payment_method: 'card',
-            status: 'active',
-            stripe_subscription_id: subscriptionData.stripe_subscription_id
-          }),
-        });
-
-        if (!customDbResponse.ok) {
-          const errorData = await customDbResponse.json();
-          throw new Error(errorData.message || 'Failed to create subscription in database');
-        }
-
         router.push('/subscription-success?type=card');
       }
     } catch (error) {
@@ -131,13 +109,13 @@ export default function CheckoutForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label className="block text-sm font-medium">Card Number</label>
+        <label className="block text-sm font-medium">Kortnummer</label>
         <CardNumberElement className="p-3 border rounded" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium">Expiry Date</label>
+          <label className="block text-sm font-medium">Utgångsdatum</label>
           <CardExpiryElement className="p-3 border rounded" />
         </div>
         <div className="space-y-2">
@@ -155,7 +133,7 @@ export default function CheckoutForm({
         disabled={loading || !stripe || !elements}
         className={`w-full btn btn-primary ${loading ? 'loading' : ''}`}
       >
-        {loading ? 'Processing...' : 'Pay Now'}
+        {loading ? 'Processing...' : 'Betala'}
       </button>
     </form>
   );

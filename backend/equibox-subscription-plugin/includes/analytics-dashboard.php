@@ -19,13 +19,15 @@ function render_analytics_dashboard() {
 
     $analytics_data = fetch_ga4_data();
 
+
     if (isset($analytics_data['error'])) {
         echo '<div class="wrap">';
         echo '<h1>Analytics Statistics</h1>';
-        echo '<div class="notice notice-error"><p>Error: ' . esc_html($analytics_data['error']) . '</p></div>';
+        echo '<div class="notice notice-error"><p>Error: <pre>' . esc_html(print_r($analytics_data['error'], true)) . '</pre></p></div>';
         echo '</div>';
         return;
     }
+    
 
     // Process the data
     $total_users = 0;
@@ -33,6 +35,7 @@ function render_analytics_dashboard() {
     $total_pageviews = 0;
     $country_data = [];
     $page_data = [];
+    $user_type_data = [];//Custom dimension
 
     if (isset($analytics_data['rows'])) {
         foreach ($analytics_data['rows'] as $row) {
@@ -42,6 +45,19 @@ function render_analytics_dashboard() {
             $total_users += intval($metrics[0]['value']);
             $total_sessions += intval($metrics[1]['value']);
             $total_pageviews += intval($metrics[2]['value']);
+        // Capture user type 
+        $user_type = $dimensions[0]['value'];
+
+        if (!isset($user_type_data[$user_type])) {
+            $user_type_data[$user_type] = [
+                'users' => 0,
+                'sessions' => 0,
+                'pageviews' => 0
+            ];
+        }
+        $user_type_data[$user_type]['users'] += intval($metrics[0]['value']);
+        $user_type_data[$user_type]['sessions'] += intval($metrics[1]['value']);
+        $user_type_data[$user_type]['pageviews'] += intval($metrics[2]['value']);
 
             // Organize by country
             $country = $dimensions[1]['value'];
@@ -65,6 +81,27 @@ function render_analytics_dashboard() {
                     'pageviews' => intval($metrics[2]['value']),
                     'bounce_rate' => floatval($metrics[5]['value'])
                 ];
+            }
+            $user_type_data = [];
+
+            if (isset($analytics_data['rows'])) {
+                foreach ($analytics_data['rows'] as $row) {
+                    $metrics = $row['metricValues'];
+                    $dimensions = $row['dimensionValues'];
+            
+                    // Capture user type
+                    $user_type = $dimensions[0]['value'];
+                    if (!isset($user_type_data[$user_type])) {
+                        $user_type_data[$user_type] = [
+                            'users' => 0,
+                            'sessions' => 0,
+                            'pageviews' => 0
+                        ];
+                    }
+                    $user_type_data[$user_type]['users'] += intval($metrics[0]['value']);
+                    $user_type_data[$user_type]['sessions'] += intval($metrics[1]['value']);
+                    $user_type_data[$user_type]['pageviews'] += intval($metrics[2]['value']);
+                }
             }
         }
     }
@@ -99,6 +136,7 @@ function render_analytics_dashboard() {
                         <th>Users</th>
                         <th>Sessions</th>
                         <th>Pageviews</th>
+                       
                     </tr>
                 </thead>
                 <tbody>
@@ -144,6 +182,30 @@ function render_analytics_dashboard() {
                     ?>
                 </tbody>
             </table>
+                    <h2>User Type Breakdown</h2>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th>User Type</th>
+                    <th>Users</th>
+                    <th>Sessions</th>
+                    <th>Pageviews</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                foreach ($user_type_data as $type => $data) {
+                    echo "<tr>
+                        <td>" . esc_html($type) . "</td>
+                        <td>" . number_format($data['users']) . "</td>
+                        <td>" . number_format($data['sessions']) . "</td>
+                        <td>" . number_format($data['pageviews']) . "</td>
+                    </tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+
         </div>
     </div>
 

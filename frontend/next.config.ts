@@ -42,10 +42,10 @@ const nextConfig: NextConfig = {
         source: "/user/subscribe", 
         destination: "https://backend.equibox.se/wp-json/equibox/v1/subscribe", 
       }, 
-      // subscriptions table linking subscription plans to users, use thus endpoint to get subscription plan for a user
+      // subscriptions table linking subscription plans to users
       {
         source: "/user/subscription", 
-        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscriptions", 
+        destination: "https://backend.equibox.se/wp-json/equibox/v1/user/subscription", 
       },
       // Handle Stripe webhook events
       {
@@ -54,11 +54,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/user/subscription/update", 
-        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscriptions/update",
+        destination: "https://backend.equibox.se/wp-json/equibox/v1/user/subscription/update",
       },
       {
         source: "/user/subscription/cancel", 
-        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscriptions/cancel", 
+        destination: "https://backend.equibox.se/wp-json/equibox/v1/subscription/cancel", 
       },
       // register user
       {
