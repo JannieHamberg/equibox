@@ -37,7 +37,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-membershop-handler.php'
 require_once plugin_dir_path(__FILE__) . 'includes/admin-dashboard.php';
 require_once plugin_dir_path(__FILE__) . 'includes/analytics-dashboard.php';
 require_once plugin_dir_path(__FILE__) . 'includes/fetch_ga4_data.php';
-
+require_once plugin_dir_path(__FILE__) . 'includes/user-tracking.php';
 
 // Enqueue styles and scripts for the admin dashboard
 add_action('admin_enqueue_scripts', function ($hook) {

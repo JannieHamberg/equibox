@@ -15,7 +15,7 @@ const forum = Forum({
   subsets: ['latin'],
 });
 
-const GA_TRACKING_ID = "G-35KT82JBV9";
+/* const GA_TRACKING_ID = "G-35KT82JBV9"; */
 
 export const metadata: Metadata = {
   title: "Equibox - Prenumerationsbox för häst & ryttare",
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="sv">
             <head>
         {/* Google Analytics Script */}
-        <Script
+       {/*  <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
         />
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               });
             `,
           }}
-        />
+        /> */}
       </head>
       <body className={forum.className}>
         <CartProvider>

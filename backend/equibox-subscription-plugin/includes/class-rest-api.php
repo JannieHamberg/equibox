@@ -14,29 +14,26 @@ require_once __DIR__ . '/subscription-user-handler.php';
 require_once __DIR__ . '/class-mailpoet-handler.php';
 require_once __DIR__ . '/class-membershop-handler.php';
 
-error_log('Stripe_Integration class file loaded.');
 
 // Ensure Stripe_Integration class is initialized
 if (class_exists('Stripe_Integration')) {
     Stripe_Integration::init(); 
-    error_log('Stripe_Integration class initialized.');
 } else {
     error_log('Stripe_Integration class does not exist!');
 }
 
     class REST_API {
+    private static $subscription_handler;
+
     public static function init() {
         add_action('rest_api_init', [__CLASS__, 'register_routes']);
-        error_log('REST API Initialized');
         
         add_filter('jwt_auth_token_before_dispatch', [__CLASS__, 'validate_jwt_from_cookie'], 10, 2);
-        error_log("JWT validation filter added");
+        self::$subscription_handler = new Subscription_Handler();
     }
 
     public static function validate_jwt_from_cookie($token, $user) {
-        error_log('JWT validation initiated.');
-    
-        
+
         if (empty($token) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
             $token = sanitize_text_field(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
             error_log('JWT token retrieved from Authorization header: ' . $token);
@@ -49,7 +46,6 @@ if (class_exists('Stripe_Integration')) {
     
 
     public static function register_routes() {
-
             // Endpoint to fetch nonce
             register_rest_route(
                 'equibox/v1',
@@ -152,58 +148,36 @@ if (class_exists('Stripe_Integration')) {
             'callback' => [Stripe_Integration::class, 'attach_payment_method'], 
             'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
         ]);
-      
-        
-     /*    register_rest_route('stripe/v1', '/cancel-subscription', [
-            'methods' => 'POST',
-            'callback' => [Stripe_Integration::class, 'cancel_subscription'],
-            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
-        ]);
-
-        register_rest_route('stripe/v1', '/retrieve-subscription', [
-            'methods' => 'GET',
-            'callback' => [Stripe_Integration::class, 'retrieve_subscription'],
-            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
-        ]);
-        
-        register_rest_route('stripe/v1', '/update-subscription', [
-            'methods' => 'POST',
-            'callback' => [Stripe_Integration::class, 'update_subscription'],
-            'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
-        ]);
-         */
-        
-
-
 
         // Existing user-specific routes
         register_rest_route(
             'equibox/v1',
-            '/subscriptions',
+            '/user/subscription',
             [
                 'methods' => 'GET',
-                'callback' => ['Subscription_Handler', 'get_user_subscription'],
+                'callback' => array(self::$subscription_handler, 'get_user_subscription'),
                 'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
             ]
         );
 
         register_rest_route(
             'equibox/v1',
-            '/subscriptions/update',
+            '/subscription/cancel',
             [
                 'methods' => 'PUT',
-                'callback' => ['Subscription_Handler', 'update_user_subscription'],
+                'callback' => array(self::$subscription_handler, 'handleCancelSubscription'),
                 'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
             ]
         );
 
+        // Keep the static method routes as they are
         register_rest_route(
             'equibox/v1',
-            '/subscriptions/cancel',
+            '/subscriptions/prenumerationer',
             [
-                'methods' => 'PUT',
-                'callback' => ['Subscription_Handler', 'cancel_user_subscription'],
-                'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+                'methods' => 'GET',
+                'callback' => ['Subscription_Handler', 'get_all_subscription_plans'],
+                'permission_callback' => '__return_true',
             ]
         );
 
@@ -386,6 +360,16 @@ if (class_exists('Stripe_Integration')) {
             'callback' => [Stripe_Integration::class, 'cleanup_subscriptions'],
             'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
         ]);
+
+        register_rest_route(
+            'equibox/v1',
+            '/user/subscription/update',
+            [
+                'methods' => 'PUT',
+                'callback' => ['Subscription_Handler', 'update_user_subscription'],
+                'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
+            ]
+        );
     }
     // Permission callbacks
     public static function check_logged_in_permissions() {

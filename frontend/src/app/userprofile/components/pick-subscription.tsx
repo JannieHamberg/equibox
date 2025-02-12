@@ -44,16 +44,12 @@ export default function PickSubscription({ availablePlans, onSelectPlan }: PickS
           {availablePlans.map((plan) => (
             <div
               key={plan.id}
-              className={`card bg-base-100 rounded-lg  w-full ${
+              className={`card bg-base-100 rounded-lg w-full ${
                 selectedPlanId === plan.id ? "border-2 border-slate-700" : ""
               }`}
               onClick={() => {
-                setSelectedPlanId(plan.id); // Update local state
-                if (onSelectPlan) {
-                  onSelectPlan(plan.id); // Notify parent only when necessary
-                }
+                setSelectedPlanId(plan.id); // Only update local state
               }}
-              
             >
               <figure>
               <Image

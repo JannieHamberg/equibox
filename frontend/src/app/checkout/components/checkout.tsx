@@ -46,7 +46,7 @@ export default function Checkout() {
       console.log("Retrieved Name from sessionStorage:", name);
 
       if (!email || !name || !token) {
-        alert("You must log in to proceed.");
+        alert("Du måste logga in för att fortsätta.");
         router.push("/login");
         return;
       }
@@ -58,7 +58,7 @@ export default function Checkout() {
 
       const planData = sessionStorage.getItem("subscriptionPlan");
       if (!planData) {
-        alert("No subscription plan found. Redirecting...");
+        alert("Ingen prenumerationsplan hittad. Omdirigerar...");
         router.push("/userprofile");
         return;
       }
@@ -75,7 +75,7 @@ export default function Checkout() {
       (async () => {
         const customerId = await fetchStripeCustomerId(authToken, userEmail, userName);
         if (!customerId) {
-          alert("Failed to fetch Stripe customer details. Please try again.");
+          alert("Misslyckades att hämta Stripe kundinformation. Försök igen.");
           return;
         }
         console.log("Stripe Customer ID:", customerId);
@@ -169,35 +169,15 @@ export default function Checkout() {
             stripe_plan_id: subscriptionPlan.stripe_plan_id,
             payment_method: 'invoice',
             billing_details: billingDetails,
-            customer_id: customerId 
+            customer_id: customerId,
+            create_in_db: true,
+            plan_id: subscriptionPlan.id
           }),
         });
 
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || 'Failed to create subscription');
-        }
-
-        // Create subscription in custom database
-        const customDbResponse = await fetch("/user/subscribe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            plan_id: subscriptionPlan.id,
-            stripe_plan_id: subscriptionPlan.stripe_plan_id,
-            stripe_subscription_id: data.stripe_subscription_id,
-            email: userEmail,
-            name: userName,
-            payment_method: 'invoice'
-          }),
-        });
-
-        if (!customDbResponse.ok) {
-          const errorData = await customDbResponse.json();
-          throw new Error(errorData.message || 'Failed to create subscription in database');
         }
 
         router.push('/subscription-success?type=invoice');
@@ -213,7 +193,8 @@ export default function Checkout() {
             email: userEmail,
             name: userName,
             amount: subscriptionPlan.price * 100,
-            customer_id: customerId 
+            customer_id: customerId,
+            force_new: true
           }),
         });
 
@@ -264,7 +245,7 @@ export default function Checkout() {
   
             <div className="card bg-base-100 shadow-xl p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+                <h3 className="text-lg font-semibold mb-4">Betalningsalternativ</h3>
                 <div className="space-y-4">
                   <label className="flex items-center space-x-3">
                     <input
@@ -275,7 +256,7 @@ export default function Checkout() {
                       onChange={() => setPaymentMethod('card')}
                       className="radio"
                     />
-                    <span>Pay with card</span>
+                    <span>Betala med kort</span>
                   </label>
                   <label className="flex items-center space-x-3">
                     <input
@@ -286,7 +267,7 @@ export default function Checkout() {
                       onChange={() => setPaymentMethod('invoice')}
                       className="radio"
                     />
-                    <span>Pay by invoice</span>
+                    <span>Betala med faktura</span>
                   </label>
                 </div>
 

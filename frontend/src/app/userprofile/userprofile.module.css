@@ -22,3 +22,26 @@
     border-radius: 8px;
   }
   
+  .swiper {
+    padding: 20px 0 40px;
+  }
+  
+  .swiper-slide {
+    height: auto;
+  }
+  
+  @media (max-width: 768px) {
+    .card {
+      min-width: 320px;
+      margin: 0 auto;
+    }
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+  

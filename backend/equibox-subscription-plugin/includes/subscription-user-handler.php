@@ -3,6 +3,14 @@
 require_once plugin_dir_path(__FILE__) . 'class-stripe-integration.php';
 
 class Subscription_Handler {
+    private $db;
+    private $subscriptions_table;
+
+    public function __construct() {
+        global $wpdb;
+        $this->db = $wpdb;
+        $this->subscriptions_table = $this->db->prefix . 'subscriptions';
+    }
 
     // Register a new user
      public static function register_user($request) {
@@ -48,7 +56,13 @@ class Subscription_Handler {
 
     public static function start_user_subscription(WP_REST_Request $request) {
         try {
-            $params = $request->get_json_params();
+            if (!defined('STRIPE_SECRET_KEY')) {
+                throw new Exception('Stripe secret key is not defined');
+            }
+            \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+
+            // Try to get parameters from either JSON or query parameters
+            $params = $request->get_json_params() ?: $request->get_query_params();
             error_log("Starting subscription with params: " . print_r($params, true));
     
             $user_id = get_current_user_id();
@@ -145,24 +159,48 @@ class Subscription_Handler {
 
 
     public static function update_user_subscription($request) {
-        error_log('Reached subscription update endpoint');
-        error_log('Stripe Key Check: ' . (get_option('stripe_secret_key') ? 'Key exists' : 'No key found'));
-        
-        global $wpdb;
-        $user_id = get_current_user_id();
-        $plan_id = intval($request->get_param('plan_id'));
-
-        if (!$user_id || !$plan_id) {
-            return new WP_Error('missing_data', 'User ID and plan ID are required.', ['status' => 400]);
-        }
-
         try {
+            $user_id = get_current_user_id();
+            $plan_id = intval($request->get_param('plan_id'));
+            
+            global $wpdb;
+            
             // Get current subscription
             $current_subscription = $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM {$wpdb->prefix}subscriptions WHERE user_id = %d",
                 $user_id
             ));
 
+            // If subscription is canceled, create a new one instead of updating
+            if ($current_subscription && $current_subscription->status === 'canceled') {
+                // Use the start_user_subscription method to create a new subscription
+                $new_request = new WP_REST_Request('POST', '/user/subscribe');
+                
+                // Get the stripe plan ID from the database
+                $stripe_plan = $wpdb->get_row($wpdb->prepare(
+                    "SELECT stripe_plan_id FROM {$wpdb->prefix}subscription_plans WHERE id = %d",
+                    $plan_id
+                ));
+                
+                if (!$stripe_plan) {
+                    return new WP_Error('invalid_plan', 'Could not find stripe plan ID for the selected plan.', ['status' => 404]);
+                }
+                
+                // Create JSON params as expected by start_user_subscription
+                $json_params = [
+                    'plan_id' => $plan_id,
+                    'stripe_plan_id' => $stripe_plan->stripe_plan_id
+                ];
+                
+                // Set both JSON and regular params to ensure one works
+                $new_request->set_body(json_encode($json_params));
+                $new_request->set_header('Content-Type', 'application/json');
+                $new_request->set_query_params($json_params);
+                
+                return self::start_user_subscription($new_request);
+            }
+
+            // Rest of the existing update logic...
             if (!$current_subscription) {
                 return new WP_Error('no_subscription', 'No active subscription found.', ['status' => 404]);
             }
@@ -320,42 +358,51 @@ class Subscription_Handler {
     
 
     // Fetch the user's current subscription
-    public static function get_user_subscription($request) {
-        error_log('Reached subscriptions endpoint');
-        global $wpdb;
-        $user_id = get_current_user_id();
-        
-        if (!$user_id) {
-            return new WP_Error('not_logged_in', 'You must be logged in to view subscriptions.', ['status' => 401]);
+    public function get_user_subscription($request) {
+        try {
+            $user_id = get_current_user_id();
+            error_log('Fetching subscription for user: ' . $user_id);
+            
+            if (!$user_id) {
+                return new WP_Error('not_logged_in', 'You must be logged in to view subscriptions.', ['status' => 401]);
+            }
+
+            $query = $this->db->prepare(
+                "SELECT 
+                    s.id, 
+                    s.user_id, 
+                    s.plan_id,
+                    s.stripe_subscription_id,
+                    s.status, 
+                    s.description, 
+                    s.created_at, 
+                    s.updated_at, 
+                    p.name, 
+                    p.price, 
+                    p.interval
+                 FROM {$this->subscriptions_table} s
+                 JOIN {$this->db->prefix}subscription_plans p ON s.plan_id = p.id
+                 WHERE s.user_id = %d
+                 ORDER BY s.created_at DESC
+                 LIMIT 1",
+                $user_id
+            );
+            
+            $results = $this->db->get_results($query, ARRAY_A);
+            error_log('Query results: ' . print_r($results, true));
+            
+            if (empty($results)) {
+                return new WP_Error('no_subscription', 'No subscriptions found for the user.', ['status' => 404]);
+            }
+            
+            return rest_ensure_response([
+                'success' => true,
+                'data' => $results,
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in get_user_subscription: ' . $e->getMessage());
+            return new WP_Error('fetch_error', $e->getMessage(), ['status' => 500]);
         }
-        
-        // Join wpct_subscriptions and wpct_subscription_plans tables
-        $results = $wpdb->get_results($wpdb->prepare(
-            "SELECT 
-                s.id, 
-                s.user_id, 
-                s.plan_id, 
-                s.status, 
-                s.description, 
-                s.created_at, 
-                s.updated_at, 
-                p.name, 
-                p.price, 
-                p.interval
-             FROM {$wpdb->prefix}subscriptions s
-             JOIN {$wpdb->prefix}subscription_plans p ON s.plan_id = p.id
-             WHERE s.user_id = %d",
-            $user_id
-        ), ARRAY_A);
-        
-        if (empty($results)) {
-            return new WP_Error('no_subscription', 'No subscriptions found for the user.', ['status' => 404]);
-        }
-        
-        return rest_ensure_response([
-            'success' => true,
-            'data' => $results,
-        ]);
     }        
 
     // Get all subscription plans (public)
@@ -389,5 +436,83 @@ class Subscription_Handler {
         ]);
     }
     
+
+    public function handleCancelSubscription($request) {
+        $subscription_id = $request->get_param('subscription_id');
+        
+        try {
+            // Get all subscriptions for this stripe_subscription_id
+            $subscriptions = $this->db->get_results(
+                $this->db->prepare(
+                    "SELECT * FROM {$this->subscriptions_table} 
+                    WHERE stripe_subscription_id = %s 
+                    ORDER BY created_at DESC",
+                    $subscription_id
+                )
+            );
+
+            if (empty($subscriptions)) {
+                return new WP_Error(
+                    'not_found',
+                    'Subscription not found',
+                    array('status' => 404)
+                );
+            }
+
+            // Get the most recent subscription
+            $latest_subscription = $subscriptions[0];
+
+            // Only proceed if the latest subscription is active
+            if ($latest_subscription->status !== 'active') {
+                return new WP_Error(
+                    'invalid_status',
+                    'Cannot cancel subscription - current status is: ' . $latest_subscription->status,
+                    array('status' => 400)
+                );
+            }
+
+            // Cancel in Stripe
+            try {
+                Stripe_Integration::cancel_stripe_subscription($subscription_id);
+            } catch (Exception $e) {
+                error_log('Stripe cancellation error: ' . $e->getMessage());
+                return new WP_Error(
+                    'stripe_error',
+                    'Failed to cancel subscription in Stripe: ' . $e->getMessage(),
+                    array('status' => 500)
+                );
+            }
+
+            // Update status in database for ALL instances of this subscription
+            $result = $this->db->query(
+                $this->db->prepare(
+                    "UPDATE {$this->subscriptions_table} 
+                    SET status = 'canceled' 
+                    WHERE stripe_subscription_id = %s",
+                    $subscription_id
+                )
+            );
+
+            if ($result === false) {
+                throw new Exception('Failed to update subscription status in database');
+            }
+
+            return new WP_REST_Response(
+                array(
+                    'success' => true,
+                    'message' => 'Subscription cancelled successfully'
+                ),
+                200
+            );
+
+        } catch (Exception $e) {
+            error_log('Error in handleCancelSubscription: ' . $e->getMessage());
+            return new WP_Error(
+                'cancellation_failed',
+                $e->getMessage(),
+                array('status' => 500)
+            );
+        }
+    }
 
 }
