@@ -8,7 +8,7 @@ import Footer from "./components/footer";
 import GoogleTranslate from './components/google-translate';
 import { CartProvider } from './context/CartContext';
 import Minicart from "./minicart/components/minicart";
-import CookiebotHandler from "./components/cookieBotHandler";
+import CookieBanner from "./components/cookieConsent";
 
 const forum = Forum({ 
   weight: '400',
@@ -71,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id=GTM-TBL88RF'+dl;f.parentNode.insertBefore(j,f);
+            'https://www.googletagmanager.com/gtm.js?id=GTM-TBL88R8F'+dl;f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','GTM-TBL88R8F');
           `,
         }}
@@ -96,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <GoogleTranslate />
           <Minicart />
-          <CookiebotHandler /> 
+            <CookieBanner />
         </CartProvider>
       </body>
     </html>
