@@ -1,5 +1,4 @@
 <?php
-
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -22,5 +21,6 @@ function add_user_type_to_datalayer() {
             'user_type': '{$user_type}'
         });
     </script>";
-}
-add_action('wp_footer', 'add_user_type_to_datalayer');
+} 
+
+add_action('wp_head', 'add_user_type_to_datalayer'); 

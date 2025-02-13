@@ -19,7 +19,6 @@ function render_analytics_dashboard() {
 
     $analytics_data = fetch_ga4_data();
 
-
     if (isset($analytics_data['error'])) {
         echo '<div class="wrap">';
         echo '<h1>Analytics Statistics</h1>';
@@ -27,40 +26,43 @@ function render_analytics_dashboard() {
         echo '</div>';
         return;
     }
-    
 
-    // Process the data
+    // Initialize Data Arrays
     $total_users = 0;
     $total_sessions = 0;
     $total_pageviews = 0;
     $country_data = [];
     $page_data = [];
-    $user_type_data = [];//Custom dimension
+    $user_type_data = []; // Custom user type dimension
 
+    // Process GA4 Data
     if (isset($analytics_data['rows'])) {
         foreach ($analytics_data['rows'] as $row) {
             $metrics = $row['metricValues'];
             $dimensions = $row['dimensionValues'];
-            
+
             $total_users += intval($metrics[0]['value']);
             $total_sessions += intval($metrics[1]['value']);
             $total_pageviews += intval($metrics[2]['value']);
-        // Capture user type 
-        $user_type = $dimensions[0]['value'];
 
-        if (!isset($user_type_data[$user_type])) {
-            $user_type_data[$user_type] = [
-                'users' => 0,
-                'sessions' => 0,
-                'pageviews' => 0
-            ];
-        }
-        $user_type_data[$user_type]['users'] += intval($metrics[0]['value']);
-        $user_type_data[$user_type]['sessions'] += intval($metrics[1]['value']);
-        $user_type_data[$user_type]['pageviews'] += intval($metrics[2]['value']);
+            // ✅ Correct index mapping based on fetch_ga4_data.php
+            $user_type = isset($dimensions[0]['value']) ? $dimensions[0]['value'] : '(not set)'; // User Type
+            $page = isset($dimensions[1]['value']) ? $dimensions[1]['value'] : '(not set)'; // Page Title
+            $country = isset($dimensions[2]['value']) ? $dimensions[2]['value'] : '(not set)'; // Country
+
+            // Organize by user type (Guest, Admin, Logged-in User)
+            if (!isset($user_type_data[$user_type])) {
+                $user_type_data[$user_type] = [
+                    'users' => 0,
+                    'sessions' => 0,
+                    'pageviews' => 0
+                ];
+            }
+            $user_type_data[$user_type]['users'] += intval($metrics[0]['value']);
+            $user_type_data[$user_type]['sessions'] += intval($metrics[1]['value']);
+            $user_type_data[$user_type]['pageviews'] += intval($metrics[2]['value']);
 
             // Organize by country
-            $country = $dimensions[1]['value'];
             if (!isset($country_data[$country])) {
                 $country_data[$country] = [
                     'users' => 0,
@@ -73,35 +75,13 @@ function render_analytics_dashboard() {
             $country_data[$country]['pageviews'] += intval($metrics[2]['value']);
 
             // Organize by page
-            $page = $dimensions[0]['value'];
             if (!isset($page_data[$page])) {
                 $page_data[$page] = [
                     'users' => intval($metrics[0]['value']),
                     'sessions' => intval($metrics[1]['value']),
                     'pageviews' => intval($metrics[2]['value']),
-                    'bounce_rate' => floatval($metrics[5]['value'])
+                    'bounce_rate' => isset($metrics[5]['value']) ? floatval($metrics[5]['value']) : 0
                 ];
-            }
-            $user_type_data = [];
-
-            if (isset($analytics_data['rows'])) {
-                foreach ($analytics_data['rows'] as $row) {
-                    $metrics = $row['metricValues'];
-                    $dimensions = $row['dimensionValues'];
-            
-                    // Capture user type
-                    $user_type = $dimensions[0]['value'];
-                    if (!isset($user_type_data[$user_type])) {
-                        $user_type_data[$user_type] = [
-                            'users' => 0,
-                            'sessions' => 0,
-                            'pageviews' => 0
-                        ];
-                    }
-                    $user_type_data[$user_type]['users'] += intval($metrics[0]['value']);
-                    $user_type_data[$user_type]['sessions'] += intval($metrics[1]['value']);
-                    $user_type_data[$user_type]['pageviews'] += intval($metrics[2]['value']);
-                }
             }
         }
     }
@@ -110,7 +90,7 @@ function render_analytics_dashboard() {
     ?>
     <div class="wrap">
         <h1>Analytics Statistics</h1>
-        
+
         <div class="analytics-overview">
             <h2>Overview (Last 30 Days)</h2>
             <div class="analytics-cards">
@@ -136,7 +116,6 @@ function render_analytics_dashboard() {
                         <th>Users</th>
                         <th>Sessions</th>
                         <th>Pageviews</th>
-                       
                     </tr>
                 </thead>
                 <tbody>
@@ -182,30 +161,30 @@ function render_analytics_dashboard() {
                     ?>
                 </tbody>
             </table>
-                    <h2>User Type Breakdown</h2>
-        <table class="wp-list-table widefat fixed striped">
-            <thead>
-                <tr>
-                    <th>User Type</th>
-                    <th>Users</th>
-                    <th>Sessions</th>
-                    <th>Pageviews</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                foreach ($user_type_data as $type => $data) {
-                    echo "<tr>
-                        <td>" . esc_html($type) . "</td>
-                        <td>" . number_format($data['users']) . "</td>
-                        <td>" . number_format($data['sessions']) . "</td>
-                        <td>" . number_format($data['pageviews']) . "</td>
-                    </tr>";
-                }
-                ?>
-            </tbody>
-        </table>
 
+            <h2>User Type Breakdown</h2>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>User Type</th>
+                        <th>Users</th>
+                        <th>Sessions</th>
+                        <th>Pageviews</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    foreach ($user_type_data as $type => $data) {
+                        echo "<tr>
+                            <td>" . esc_html($type) . "</td>
+                            <td>" . number_format($data['users']) . "</td>
+                            <td>" . number_format($data['sessions']) . "</td>
+                            <td>" . number_format($data['pageviews']) . "</td>
+                        </tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
         </div>
     </div>
 
