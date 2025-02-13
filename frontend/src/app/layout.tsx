@@ -43,25 +43,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="sv">
             <head>
-        {/* Google Analytics Script */}
-       {/*  <Script
-          strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
-        />
+                {/* Push user_type to dataLayer BEFORE GTM loads */}
         <Script
-          id="ga4-script"
-          strategy="afterInteractive"
+          id="user-type-tracking"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
-              function gtag(){window.dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GA_TRACKING_ID}', {
-                page_path: window.location.pathname,
+              window.dataLayer.push({
+                'event': 'userTypeDefined',
+                'user_type': (function() {
+                  if (typeof window !== 'undefined' && window.isAdmin) {
+                    return 'admin';
+                  } else if (typeof window !== 'undefined' && window.isLoggedIn) {
+                    return 'logged_in';
+                  } else {
+                    return 'guest';
+                  }
+                })()
               });
             `,
           }}
-        /> */}
+        />
+
         {/* Google Tag Manager (GTM) */}
         <Script
         id="google-tag-manager"
