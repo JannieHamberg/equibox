@@ -81,7 +81,8 @@ function fetch_ga4_data() {
             ['name' => 'bounceRate']
         ],
         'dimensions' => [
-            ['name' => 'customEvent:user_type'], // Custom dimension 
+            /* ['name' => 'customEvent:user_type'], */ // Custom dimension 
+            ['name' => 'customEvent:user_type'],
             ['name' => 'pageTitle'],
             ['name' => 'country'],
           
@@ -97,6 +98,7 @@ function fetch_ga4_data() {
         'body' => json_encode($request_body),
         'timeout' => 30,
     ]);
+    error_log("GA4 Response: " . print_r(json_decode(wp_remote_retrieve_body($response), true), true));
 
     if (is_wp_error($response)) {
         return ['error' => $response->get_error_message()];

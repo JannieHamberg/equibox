@@ -45,8 +45,8 @@ function render_analytics_dashboard() {
             $total_sessions += intval($metrics[1]['value']);
             $total_pageviews += intval($metrics[2]['value']);
 
-            // ✅ Correct index mapping based on fetch_ga4_data.php
-            $user_type = isset($dimensions[0]['value']) ? $dimensions[0]['value'] : '(not set)'; // User Type
+            // Organize by user type (Guest, Logged-in User)
+            $user_type = !empty($dimensions[0]['value']) ? $dimensions[0]['value'] : 'guest'; // User Type
             $page = isset($dimensions[1]['value']) ? $dimensions[1]['value'] : '(not set)'; // Page Title
             $country = isset($dimensions[2]['value']) ? $dimensions[2]['value'] : '(not set)'; // Country
 
