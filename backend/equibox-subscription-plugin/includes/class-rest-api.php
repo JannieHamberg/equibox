@@ -6,6 +6,7 @@ if (!defined('ARRAY_A')) {
 
 require_once __DIR__ . '/client-secret-handler.php';
 require_once __DIR__ . '/class-stripe-integration.php';
+require_once __DIR__ . '/auth-functions.php';
 require_once __DIR__ . '/class-stripe-webhook-handler.php';
 require_once __DIR__ . '/class-product-handler.php';
 require_once __DIR__ . '/class-box-handler.php';
@@ -370,6 +371,13 @@ if (class_exists('Stripe_Integration')) {
                 'permission_callback' => [__CLASS__, 'check_logged_in_permissions'],
             ]
         );
+
+       
+            register_rest_route('custom/v1', '/auth-status', [
+                'methods'  => 'GET',
+                'callback' => 'check_user_auth_status', 
+                'permission_callback' => '__return_true' 
+            ]);
     }
     // Permission callbacks
     public static function check_logged_in_permissions() {
