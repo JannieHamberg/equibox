@@ -19,23 +19,18 @@ class Stripe_Webhook_Handler {
         }
     
         $stripe_signature = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
-        error_log('Stripe signature received: ' . ($stripe_signature ?: 'None'));
     
         $payload = @file_get_contents('php://input');
-        error_log('Webhook payload: ' . ($payload ?: 'None'));
     
         if (empty($stripe_signature)) {
-            error_log('Missing Stripe signature.');
             return false;
         }
     
         try {
             // Verify the signature
             Webhook::constructEvent($payload, $stripe_signature, $endpoint_secret);
-            error_log('Webhook signature verification successful');
             return true;
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            error_log('Stripe signature verification failed: ' . $e->getMessage());
             return false;
         }
     }
@@ -55,8 +50,6 @@ class Stripe_Webhook_Handler {
             $payload = $request->get_body();
             $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
             $event = \Stripe\Webhook::constructEvent($payload, $sig_header, STRIPE_WEBHOOK_SECRET);
-
-            error_log('Webhook event received: ' . $event->type);
 
             switch ($event->type) {
                 case 'invoice.payment_succeeded':
@@ -90,7 +83,6 @@ class Stripe_Webhook_Handler {
 
             return rest_ensure_response(['success' => true]);
         } catch (\Exception $e) {
-            error_log('Webhook Error: ' . $e->getMessage());
             return new WP_Error('webhook_error', $e->getMessage(), ['status' => 400]);
         }
     }
@@ -101,13 +93,11 @@ class Stripe_Webhook_Handler {
         global $wpdb;
     
         try {
-            error_log("Handling payment succeeded for invoice: " . $invoice->id);
     
             if (!empty($invoice->subscription)) {
                 // Fetch the latest subscription status
                 $subscription = \Stripe\Subscription::retrieve($invoice->subscription);
                 $subscription_status = $subscription->status;
-                error_log("Re-fetched subscription status: " . $subscription_status);
     
                 if ($subscription_status === 'active') {
                     // Update the database only if subscription is now active
@@ -121,7 +111,6 @@ class Stripe_Webhook_Handler {
                         ['stripe_subscription_id' => $invoice->subscription]
                     );
     
-                    error_log("Subscription updated to active in DB: " . $invoice->subscription);
                 } else {
                     error_log(" Subscription status is still '$subscription_status'. Not updating database.");
                 }
@@ -137,9 +126,6 @@ class Stripe_Webhook_Handler {
 
     private static function handle_payment_failed($invoice) {
         global $wpdb;
-
-        error_log('Handling payment failed for invoice: ' . print_r($invoice, true));
-
         $subscription_id = $invoice->subscription;
 
         $updated = $wpdb->update(
@@ -161,7 +147,6 @@ class Stripe_Webhook_Handler {
     
     public static function handle_subscription_created($subscription) {
         global $wpdb;
-        error_log("Handling subscription created: " . $subscription->id);
         
         // Get user email from subscription metadata
         $user_email = $subscription->metadata->user_email ?? '';
@@ -215,11 +200,8 @@ class Stripe_Webhook_Handler {
     }
 
     public static function handle_subscription_updated($subscription) {
-        error_log("Handling subscription updated: " . $subscription->id);
-        
-        global $wpdb;
-        error_log('Handling subscription update: ' . print_r($subscription, true));
 
+        global $wpdb;
         // Get Stripe subscription status and map it appropriately
         $stripe_status = $subscription->status;
         $db_status = ($stripe_status === 'active') ? 'active' : 'incomplete';
@@ -235,15 +217,10 @@ class Stripe_Webhook_Handler {
             ['%s', '%s'],
             ['%s']
         );
-
-        error_log("Update result for subscription {$subscription->id}: status={$db_status} " . 
-                 ($result !== false ? "Success" : "Failed - " . $wpdb->last_error));
     }
 
     private static function handle_subscription_deleted($subscription) {
         global $wpdb;
-
-        error_log('Handling subscription deleted: ' . print_r($subscription, true));
 
         if (empty($subscription->id)) {
             error_log('Subscription deleted event missing subscription ID.');
@@ -275,8 +252,6 @@ class Stripe_Webhook_Handler {
         global $wpdb;
         
         try {
-            error_log("Handling payment intent succeeded for: " . $payment_intent->id);
-    
             $subscription_id = null;
     
             // Retrieve the subscription ID from multiple possible sources
@@ -302,7 +277,6 @@ class Stripe_Webhook_Handler {
                 // Fetch the latest subscription status from Stripe
                 $subscription = \Stripe\Subscription::retrieve($subscription_id);
                 $subscription_status = $subscription->status;
-                error_log(" Re-fetched subscription status: " . $subscription_status);
     
                 if ($subscription_status === 'active') {
                     // Update the database only if subscription is now active
@@ -315,7 +289,6 @@ class Stripe_Webhook_Handler {
                         ],
                         ['stripe_subscription_id' => $subscription_id]
                     );
-                    error_log(" Subscription updated to active in DB: " . $subscription_id);
                 } else {
                     error_log(" Subscription status is still '$subscription_status'. Not updating database.");
                 }

@@ -77,7 +77,6 @@ class Product_Handler {
         );
     
         if ($inserted === false) {
-            error_log('Database Error: ' . $wpdb->last_error);
             return new WP_Error('db_error', 'Failed to add product', ['status' => 500]);
         }
     

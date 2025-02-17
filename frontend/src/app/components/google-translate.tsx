@@ -21,6 +21,9 @@ import { useEffect } from 'react';
 
 export default function GoogleTranslate(): JSX.Element {
   useEffect(() => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+
     const addScript = () => {
       const script = document.createElement('script');
       script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
@@ -30,22 +33,39 @@ export default function GoogleTranslate(): JSX.Element {
     };
 
     window.googleTranslateElementInit = function() {
-      if (window.google?.translate?.TranslateElement) {
-        new window.google.translate.TranslateElement(
-          {
-            pageLanguage: 'sv',
-            includedLanguages: 'en,sv',
-            autoDisplay: false,
-          },
-          'google_translate_element'
-        );
+      try {
+        if (window.google?.translate?.TranslateElement) {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: 'sv',
+              includedLanguages: 'en,sv',
+              autoDisplay: false,
+            },
+            'google_translate_element'
+          );
+        }
+      } catch (error) {
+        console.error('Google Translate initialization error:', error);
       }
     };
 
-    const script = addScript();
+    let script: HTMLScriptElement;
+    try {
+      script = addScript();
+    } catch (error) {
+      console.error('Error adding Google Translate script:', error);
+      return;
+    }
+
     return () => {
-      document.body.removeChild(script);
-      delete window.googleTranslateElementInit;
+      try {
+        if (script && document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+        delete window.googleTranslateElementInit;
+      } catch (error) {
+        console.error('Error cleaning up Google Translate:', error);
+      }
     };
   }, []);
 

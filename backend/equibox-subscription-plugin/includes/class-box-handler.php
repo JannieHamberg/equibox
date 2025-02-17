@@ -3,8 +3,6 @@
 class Box_Handler {
 
     public static function assign_product_to_box($request) {
-        error_log('Assign product handler invoked!');
-        
         // Get request parameters
         $plan_id = $request->get_param('plan_id');
         $product_id = $request->get_param('product_id');

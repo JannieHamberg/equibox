@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import PageTransition from "./page-transition";
+import MaintenanceMode from "./components/MaintenanceMode";
 import { AuthProvider } from "./context/AuthContext";
 import { Forum } from "next/font/google";
 import Script from "next/script"; 
 import "./globals.css";
-import  CustomNavbar from './components/navbar/navbar';
+import CustomNavbar from './components/navbar/navbar';
 import Footer from "./components/footer";
 import GoogleTranslate from './components/google-translate';
 import { CartProvider } from './context/CartContext';
 import Minicart from "./minicart/components/minicart";
 import CookieBanner from "./components/cookieConsent";
+
 
 
 const forum = Forum({ 
@@ -71,16 +73,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ></iframe>
           </noscript>
 
-          <CartProvider>
-            <CustomNavbar />
-            <PageTransition>{children}</PageTransition>
-            <Footer />
-            <GoogleTranslate />
-            <Minicart />
-            <CookieBanner />
-          </CartProvider>
+          <MaintenanceMode>
+            <CartProvider>
+              <CustomNavbar />
+              <PageTransition>{children}</PageTransition>
+              <Footer />
+              <GoogleTranslate />
+              <Minicart />
+              <CookieBanner />
+            </CartProvider>
+          </MaintenanceMode>
 
-          {/* Add the user-type-tracking script here instead */}
+          {/* user-type-tracking script, moved to context/AuthContext.tsx*/}
 {/*           <Script
             id="user-type-tracking"
             strategy="afterInteractive"

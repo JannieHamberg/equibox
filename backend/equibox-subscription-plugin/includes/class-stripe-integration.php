@@ -14,16 +14,12 @@ class Stripe_Integration {
             // Get or create customer
             $customer_id = self::get_or_create_customer($email, $name);
             if (!$customer_id || !preg_match('/^cus_[A-Za-z0-9]+$/', $customer_id)) {
-                error_log("Invalid or missing customer ID: " . print_r($customer_id, true));
                 return new WP_Error('invalid_customer', 'Invalid customer ID', ['status' => 400]);
             }
-    
-            error_log("Customer ID: " . $customer_id);
     
             // Validate and attach payment method if applicable
             if ($payment_method_id) {
                 if (!preg_match('/^pm_[A-Za-z0-9]+$/', $payment_method_id)) {
-                    error_log("Invalid payment method ID format: " . $payment_method_id);
                     return new WP_Error('invalid_request', 'Invalid payment method ID format.', ['status' => 400]);
                 }
     
@@ -35,14 +31,12 @@ class Stripe_Integration {
                         'invoice_settings' => ['default_payment_method' => $payment_method_id]
                     ]);
                 } catch (\Exception $e) {
-                    error_log('Error attaching payment method: ' . $e->getMessage());
                     return new WP_Error('stripe_error', 'Failed to attach payment method.', ['status' => 400]);
                 }
             }
     
             // Validate plan ID
             if (!$stripe_plan_id || !preg_match('/^price_[A-Za-z0-9]+$/', $stripe_plan_id)) {
-                error_log("Invalid stripe_plan_id: " . $stripe_plan_id);
                 return new WP_Error('invalid_request', 'Invalid stripe_plan_id.', ['status' => 400]);
             }
     
@@ -65,10 +59,8 @@ class Stripe_Integration {
                 'current_period_end' => $subscription->current_period_end
             ];
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API Error: ' . $e->getMessage());
             return new WP_Error('stripe_error', 'Failed to create subscription: ' . $e->getMessage(), ['status' => 400]);
         } catch (\Exception $e) {
-            error_log('General Error: ' . $e->getMessage());
             return new WP_Error('general_error', 'An unexpected error occurred: ' . $e->getMessage(), ['status' => 500]);
         }
     }
@@ -81,25 +73,21 @@ class Stripe_Integration {
         // Set Stripe API key
         $stripe_secret_key = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
         if (empty($stripe_secret_key)) {
-            error_log("Stripe secret key is missing");
             return new WP_Error('stripe_key_error', 'Stripe secret key is not configured.', ['status' => 500]);
         }
         \Stripe\Stripe::setApiKey($stripe_secret_key);
     
         // Parse input
         $params = $request->get_json_params();
-        error_log("Request Body: " . print_r($params, true));
     
         // Validate and sanitize `amount`
         if (empty($params['amount']) || !is_numeric($params['amount']) || intval($params['amount']) <= 0) {
-            error_log("Invalid amount provided: " . $params['amount']);
             return new WP_Error('invalid_request', 'Amount must be a positive integer.', ['status' => 400]);
         }
         $amount = intval($params['amount']);
     
         // Validate and sanitize `customer_id`
         if (empty($params['customer_id'])) {
-            error_log("Missing customer_id in create-client-secret request.");
             return new WP_Error('invalid_request', 'customer_id is required', ['status' => 400]);
         }
         if (is_array($params['customer_id']) && isset($params['customer_id']['id'])) {
@@ -109,14 +97,12 @@ class Stripe_Integration {
         }
     
         if (!preg_match('/^cus_[A-Za-z0-9]+$/', $customer_id)) {
-            error_log("Invalid customer_id format: " . $customer_id);
             return new WP_Error('invalid_request', 'Invalid customer_id format.', ['status' => 400]);
         }
     
         // Validate and sanitize `payment_method_id`
         $payment_method_id = isset($params['payment_method_id']) ? sanitize_text_field($params['payment_method_id']) : null;
         if ($payment_method_id && !preg_match('/^pm_[A-Za-z0-9]+$/', $payment_method_id)) {
-            error_log("Invalid payment_method_id format: " . $payment_method_id);
             return new WP_Error('invalid_request', 'Invalid payment_method_id format.', ['status' => 400]);
         }
     
@@ -140,17 +126,14 @@ class Stripe_Integration {
             }
     
             $intent = \Stripe\PaymentIntent::create($intent_params);
-            error_log("Stripe PaymentIntent Created: " . $intent->id);
     
             return rest_ensure_response([
                 'clientSecret' => $intent->client_secret,
                 'paymentIntentId' => $intent->id,
             ]);
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API Error: ' . $e->getMessage());
             return new WP_Error('stripe_error', $e->getMessage(), ['status' => 400]);
         } catch (Exception $e) {
-            error_log('General Error: ' . $e->getMessage());
             return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);
         }
     }
@@ -179,7 +162,6 @@ class Stripe_Integration {
                 $stripe_customer_id = self::get_or_create_customer($email, $name);
                 return rest_ensure_response(['stripe_customer_id' => $stripe_customer_id]);
             } catch (Exception $e) {
-                error_log("Error: " . $e->getMessage());
                 return new WP_Error('server_error', $e->getMessage(), ['status' => 500]);
             }
         }
@@ -195,19 +177,15 @@ class Stripe_Integration {
                     'limit' => 1
                 ]);
         
-                error_log("Search results for customer with email $email: " . count($customers->data));
-        
                 // Check if customer exists
                 if (count($customers->data) > 0) {
                     $customer = $customers->data[0];
-                    error_log("Found existing customer: {$customer->id}");
                     
                     // Update customer details if needed
                     if ($customer->name !== $name) {
                         \Stripe\Customer::update($customer->id, [
                             'name' => $name
                         ]);
-                        error_log("Updated customer name to: $name");
                     }
         
                     return $customer->id; //  Return only the customer ID
@@ -218,12 +196,10 @@ class Stripe_Integration {
                     'email' => $email,
                     'name' => $name,
                 ]);
-                error_log("Created new customer: {$customer->id}");
         
                 return $customer->id; 
         
             } catch (\Exception $e) {
-                error_log("Error in get_or_create_customer: " . $e->getMessage());
                 throw $e;
             }
         }
@@ -261,14 +237,10 @@ class Stripe_Integration {
                 'confirm' => true,
             ]);
     
-            error_log('PaymentIntent created successfully: ' . $payment_intent->id);
-    
             return rest_ensure_response(['payment_intent' => $payment_intent]);
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API Error: ' . $e->getMessage());
             return new WP_Error('stripe_error', $e->getMessage(), ['status' => 500]);
         } catch (Exception $e) {
-            error_log('General Stripe Error: ' . $e->getMessage());
             return new WP_Error('stripe_error', $e->getMessage(), ['status' => 500]);
         }
     }
@@ -292,23 +264,17 @@ class Stripe_Integration {
             \Stripe\Customer::update($customer_id, [
                 'invoice_settings' => ['default_payment_method' => $payment_method_id],
             ]);
-
-            error_log('Payment method attached to customer: ' . $payment_method_id);
-
     
             return rest_ensure_response(['message' => 'Payment method attached successfully.']);
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API Error: ' . $e->getMessage());
             return new WP_Error('stripe_error', 'Failed to attach the payment method.', ['status' => 500]);
         } catch (Exception $e) {
-            error_log('General Error: ' . $e->getMessage());
             return new WP_Error('general_error', 'An unexpected error occurred. Please try again.', ['status' => 500]);
         }
     }
     
     public static function handle_create_subscription(WP_REST_Request $request) {
         $params = $request->get_json_params();
-        error_log('Received parameters: ' . print_r($params, true));
     
         // Validate and sanitize inputs
         $email = sanitize_email($params['email']);
@@ -346,7 +312,6 @@ class Stripe_Integration {
     
             return rest_ensure_response($result);
         } catch (Exception $e) {
-            error_log('Error in handle_create_subscription: ' . $e->getMessage());
             return new WP_Error('subscription_error', $e->getMessage(), ['status' => 500]);
         }
     }
@@ -357,21 +322,17 @@ class Stripe_Integration {
     public static function update_stripe_subscription($stripe_subscription_id, $plan_id) {
         global $wpdb;
 
-        error_log("Updating Stripe subscription: $stripe_subscription_id for Plan ID: $plan_id");
-
         // Fetch the stripe_plan_id for the given plan_id
         $stripe_plan_id = $wpdb->get_var($wpdb->prepare(
             "SELECT stripe_plan_id FROM {$wpdb->prefix}subscription_plans WHERE id = %d",
             $plan_id
         ));
-        error_log("Fetched Stripe Plan ID for Plan ID $plan_id: " . ($stripe_plan_id ?: 'Not Found'));
 
         if (empty($stripe_plan_id)) {
             throw new Exception("No Stripe plan ID found for plan ID: $plan_id");
         }
 
         $secret_key = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
-        error_log('Stripe Secret Key: ' . ($secret_key ? 'Loaded' : 'Missing'));
 
         if (empty($secret_key)) {
             throw new Exception('Stripe secret key is not defined in wp-config.php');
@@ -381,7 +342,6 @@ class Stripe_Integration {
 
         try {
             $subscription = \Stripe\Subscription::retrieve($stripe_subscription_id);
-            error_log("Retrieved subscription: " . print_r($subscription, true));
 
             // Update subscription items with the new plan
             $updated_subscription = \Stripe\Subscription::update(
@@ -396,8 +356,6 @@ class Stripe_Integration {
                     'proration_behavior' => 'create_prorations',
                 ]
             );
-
-            error_log("Stripe subscription updated: $stripe_subscription_id");
 
             // Update database
             $updated = $wpdb->update(
@@ -416,16 +374,13 @@ class Stripe_Integration {
             return $updated_subscription;
 
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log("Stripe API Error during subscription update: " . $e->getMessage());
             throw new Exception("Failed to update subscription: " . $e->getMessage());
         }
     }
 
     public static function cancel_stripe_subscription($stripe_subscription_id, $cancel_at_period_end = false) {
-        error_log("Cancelling Stripe subscription: $stripe_subscription_id. Cancel at period end: " . ($cancel_at_period_end ? 'Yes' : 'No'));
 
         $secret_key = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
-        error_log('Stripe Secret Key: ' . ($secret_key ? 'Loaded' : 'Missing'));
 
         if (empty($secret_key)) {
             throw new Exception('Stripe secret key is not defined in wp-config.php');
@@ -435,12 +390,9 @@ class Stripe_Integration {
 
         try {
             $subscription = \Stripe\Subscription::retrieve($stripe_subscription_id);
-            error_log("Retrieved subscription: " . print_r($subscription, true));
 
             // Cancel subscription
             $subscription->cancel(['at_period_end' => $cancel_at_period_end]);
-            error_log("Stripe subscription canceled successfully: $stripe_subscription_id");
-
             // Update database
             global $wpdb;
             $updated = $wpdb->update(
@@ -460,7 +412,6 @@ class Stripe_Integration {
             return true;
 
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log("Stripe API Error during subscription cancellation: " . $e->getMessage());
             throw new Exception("Failed to cancel subscription: " . $e->getMessage());
         }
     }
@@ -468,10 +419,8 @@ class Stripe_Integration {
     private static function get_customer_by_email($email) {
         try {
             $customers = \Stripe\Customer::all(['email' => $email]);
-            error_log("Retrieved customers: " . print_r($customers, true));
             return count($customers->data) > 0 ? $customers->data[0] : null;
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log("Error fetching Stripe customer by email: " . $e->getMessage());
             return null;
         }
     }
@@ -480,14 +429,12 @@ class Stripe_Integration {
     public static function get_customer_id(WP_REST_Request $request) {
         // Check if Stripe secret key is defined
         if (!defined('STRIPE_SECRET_KEY') || empty(STRIPE_SECRET_KEY)) {
-            error_log("Stripe secret key not defined");
             return new WP_Error('stripe_key_missing', 'Stripe secret key is not configured.', ['status' => 500]);
         }
     
         // Get current user ID
         $user_id = get_current_user_id();
         if (!$user_id) {
-            error_log("User not logged in");
             return new WP_Error('unauthorized', 'User not logged in.', ['status' => 401]);
         }
     
@@ -515,11 +462,9 @@ class Stripe_Integration {
                 ]);
     
                 $stripe_customer_id = $customer->id;
-                error_log("New Stripe customer created: $stripe_customer_id");
             } else {
                 // Customer exists, retrieve their ID
                 $stripe_customer_id = $customers->data[0]->id;
-                error_log("Stripe customer ID retrieved: $stripe_customer_id");
             }
     
             // Add this check right after getting the customer_id
@@ -532,7 +477,6 @@ class Stripe_Integration {
             ));
 
             if ($existing_db_subscription) {
-                error_log("Found existing active subscription in database for user " . get_current_user_id());
                 throw new Exception('You already have an active subscription.');
             }
     
@@ -541,19 +485,15 @@ class Stripe_Integration {
     
         } catch (\Stripe\Exception\ApiErrorException $e) {
             // Handle Stripe API errors
-            error_log("Stripe API error: " . $e->getMessage());
             return new WP_Error('stripe_error', 'Error communicating with Stripe.', ['status' => 500]);
         } catch (Exception $e) {
             // Handle other unexpected exceptions
-            error_log("General error: " . $e->getMessage());
             return new WP_Error('general_error', 'An unexpected error occurred.', ['status' => 500]);
         }
     }
     
 
     public static function create_payment_intent($amount, $currency, $customer_id, $metadata = []) {
-        error_log("Creating Payment Intent for Customer ID: $customer_id, Amount: $amount, Currency: $currency");
-    
         // Validate parameters
         if (!is_int($amount) || $amount <= 0) {
             throw new Exception('Invalid amount. Amount must be a positive integer.');
@@ -586,14 +526,11 @@ class Stripe_Integration {
                 
             ]);
     
-            error_log('Payment Intent created successfully: ' . $paymentIntent->client_secret);
             return $paymentIntent->client_secret;
     
         } catch (\Stripe\Exception\ApiConnectionException $e) {
-            error_log('Stripe Network Error: ' . $e->getMessage());
             throw new Exception('A network issue occurred. Please try again later.');
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API Error: ' . $e->getMessage());
             throw new Exception('Failed to create Payment Intent: ' . $e->getMessage());
         }
     }
@@ -611,10 +548,8 @@ class Stripe_Integration {
                 'current_period_end' => $subscription->current_period_end,
             ];
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Stripe API Error: ' . $e->getMessage());
             return new WP_Error('stripe_api_error', $e->getMessage(), ['status' => 500]);
         } catch (\Exception $e) {
-            error_log('General Error: ' . $e->getMessage());
             return new WP_Error('general_error', $e->getMessage(), ['status' => 500]);
         }
     }
@@ -624,11 +559,9 @@ class Stripe_Integration {
             self::set_stripe_api_key();
     
             $params = $request->get_json_params();
-            error_log('Cleanup subscriptions params: ' . print_r($params, true));
     
             // Ensure `customer_id` exists
             if (empty($params['customer_id'])) {
-                error_log("Missing customer_id in cleanup_subscriptions request.");
                 return new WP_Error('invalid_request', 'customer_id is required', ['status' => 400]);
             }
     
@@ -638,25 +571,21 @@ class Stripe_Integration {
             } elseif (is_string($params['customer_id'])) {
                 $customer_id = sanitize_text_field($params['customer_id']);
             } else {
-                error_log('Invalid customer_id format in cleanup_subscriptions: ' . print_r($params['customer_id'], true));
                 return new WP_Error('invalid_request', 'Invalid customer_id format', ['status' => 400]);
             }
     
             // Validate customer_id format (must start with "cus_")
             if (!preg_match('/^cus_[A-Za-z0-9]+$/', $customer_id)) {
-                error_log("Invalid customer_id format: " . $customer_id);
                 return new WP_Error('invalid_request', 'Invalid customer_id format', ['status' => 400]);
             }
     
             // Ensure `plan_id` exists
             if (empty($params['plan_id'])) {
-                error_log("Missing plan_id in cleanup_subscriptions request.");
                 return new WP_Error('invalid_request', 'plan_id is required', ['status' => 400]);
             }
     
             $plan_id = sanitize_text_field($params['plan_id']);
             if (!preg_match('/^price_[A-Za-z0-9]+$/', $plan_id)) {
-                error_log("Invalid plan_id format: " . $plan_id);
                 return new WP_Error('invalid_request', 'Invalid plan_id format', ['status' => 400]);
             }
     
@@ -668,7 +597,6 @@ class Stripe_Integration {
                 ]);
     
                 if (empty($incomplete_subscriptions->data)) {
-                    error_log("No incomplete subscriptions found for customer: " . $customer_id);
                     return rest_ensure_response(['success' => true, 'message' => 'No incomplete subscriptions to clean.']);
                 }
     
@@ -694,12 +622,10 @@ class Stripe_Integration {
                 ]);
     
             } catch (\Stripe\Exception\InvalidRequestException $e) {
-                error_log('Stripe API Error: ' . $e->getMessage());
                 return new WP_Error('stripe_error', 'Stripe API request failed: ' . $e->getMessage(), ['status' => 400]);
             }
     
         } catch (\Exception $e) {
-            error_log('Error in cleanup_subscriptions: ' . $e->getMessage());
             return new WP_Error('cleanup_error', 'General error: ' . $e->getMessage(), ['status' => 500]);
         }
     }
@@ -716,7 +642,6 @@ class Stripe_Integration {
 
             return $subscription;
         } catch (\Exception $e) {
-            error_log('Error creating subscription: ' . $e->getMessage());
             throw $e;
         }
     }

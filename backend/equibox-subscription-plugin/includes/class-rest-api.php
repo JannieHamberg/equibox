@@ -267,18 +267,12 @@ if (class_exists('Stripe_Integration')) {
             'callback' => ['Subscription_Admin_Handler', 'add_subscription_plan'],
             'permission_callback' => function () {
                 $user = wp_get_current_user();
-
-                // Log user details for debugging
-                error_log('User ID: ' . $user->ID);
-                error_log('User capabilities: ' . print_r($user->allcaps, true));
-
+                
                 // Check if the user has the required capability
                 if (!current_user_can('manage_options')) {
-                    error_log('Permission denied for user ID: ' . $user->ID);
                     return false;
                 }
 
-                error_log('Permission granted for user ID: ' . $user->ID);
                 return true;
             },
         ]);
@@ -290,17 +284,11 @@ if (class_exists('Stripe_Integration')) {
             'permission_callback' => function () {
                 $user = wp_get_current_user();
 
-                // Log user details for debugging
-                error_log('User ID: ' . $user->ID);
-                error_log('User capabilities: ' . print_r($user->allcaps, true));
-
                 // Check if the user has the required capability
                 if (!current_user_can('manage_options')) {
                     error_log('Permission denied for user ID: ' . $user->ID);
                     return false;
                 }
-
-                error_log('Permission granted for user ID: ' . $user->ID);
                 return true;
             },
         ]);
@@ -312,13 +300,8 @@ if (class_exists('Stripe_Integration')) {
             'permission_callback' => function () {
                 $user = wp_get_current_user();
 
-                // Log user details for debugging
-                error_log('User ID: ' . $user->ID);
-                error_log('User capabilities: ' . print_r($user->allcaps, true));
-
                 // Check if the user has the required capability
                 if (!current_user_can('manage_options')) {
-                    error_log('Permission denied for user ID: ' . $user->ID);
                     return false;
                 }
 
@@ -378,7 +361,9 @@ if (class_exists('Stripe_Integration')) {
                 'callback' => 'check_user_auth_status', 
                 'permission_callback' => '__return_true' 
             ]);
+
     }
+
     // Permission callbacks
     public static function check_logged_in_permissions() {
         return is_user_logged_in(); // Allow only logged in users
