@@ -12,6 +12,26 @@ add_action('admin_menu', function () {
     );
 });
 
+// Enqueue Google Charts & Custom Dashboard JS
+function enqueue_analytics_scripts($hook) {
+    if ($hook !== 'toplevel_page_analytics-statistics') {
+        return;
+    }
+
+    // Load Google Charts library
+    wp_enqueue_script('google-charts', 'https://www.gstatic.com/charts/loader.js', [], null, true);
+    
+    // Load our custom analytics JS
+    wp_enqueue_script(
+        'analytics-dashboard-js', 
+        plugin_dir_url(dirname(__FILE__)) . 'assets/js/analytics-dashboard.js', 
+        ['google-charts'], 
+        '1.0.0', 
+        true
+    );
+}
+add_action('admin_enqueue_scripts', 'enqueue_analytics_scripts');
+
 function render_analytics_dashboard() {
     if (!current_user_can('manage_options')) {
         wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -46,9 +66,9 @@ function render_analytics_dashboard() {
             $total_pageviews += intval($metrics[2]['value']);
 
             // Organize by user type (Guest, Logged-in User)
-            $user_type = !empty($dimensions[0]['value']) ? $dimensions[0]['value'] : 'guest'; // User Type
-            $page = isset($dimensions[1]['value']) ? $dimensions[1]['value'] : '(not set)'; // Page Title
-            $country = isset($dimensions[2]['value']) ? $dimensions[2]['value'] : '(not set)'; // Country
+            $user_type = !empty($dimensions[0]['value']) ? $dimensions[0]['value'] : 'guest';
+            $page = isset($dimensions[1]['value']) ? $dimensions[1]['value'] : '(not set)'; 
+            $country = isset($dimensions[2]['value']) ? $dimensions[2]['value'] : '(not set)'; 
 
             // Organize by user type (Guest, Admin, Logged-in User)
             if (!isset($user_type_data[$user_type])) {
@@ -163,6 +183,20 @@ function render_analytics_dashboard() {
             </table>
 
             <h2>User Type Breakdown</h2>
+            <div id="userTypeChart" style="width: 100%; height: 400px; margin-bottom: 30px;"></div>
+
+            <?php
+            // Prepare and localize the data for the chart
+            $chart_data = array(array('User Type', 'Users'));
+            foreach ($user_type_data as $type => $data) {
+                // Skip "(not set)" entries
+                if ($type !== '(not set)') {
+                    $chart_data[] = array($type, intval($data['users']));
+                }
+            }
+            wp_localize_script('analytics-dashboard-js', 'userTypeChartData', array('data' => $chart_data));
+            ?>
+
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
