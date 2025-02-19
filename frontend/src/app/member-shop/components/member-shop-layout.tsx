@@ -84,6 +84,13 @@ export default function MemberShopLayout() {
   // Handle category click
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
+
+      // Send to Data Layer for tracking
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    'event': 'category_view',
+    'product_category': category
+  });
   };
 
   // Reset filters function

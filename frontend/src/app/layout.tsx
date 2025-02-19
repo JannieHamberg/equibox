@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <AuthProvider>
       <html lang="sv">
         <head>
-          {/* Move the user-type-tracking script after AuthProvider is mounted */}
+          {/* user-type-tracking script */}
           <Script
             id="google-tag-manager"
             strategy="afterInteractive"
@@ -83,22 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <CookieBanner />
             </CartProvider>
           </MaintenanceMode>
-
-          {/* user-type-tracking script, moved to context/AuthContext.tsx*/}
-{/*           <Script
-            id="user-type-tracking"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                const authData = document.cookie.split('; ').find(row => row.startsWith('wp-logged-in'));
-                window.dataLayer.push({
-                  'event': 'userTypeDefined',
-                  'user_type': authData ? 'logged_in' : 'guest'
-                });
-              `,
-            }}
-          /> */}
+          
         </body>
       </html>
     </AuthProvider>
